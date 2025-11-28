@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P&P Electricidad - Sistema de Gestión</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="logo-container">
+                    <img src="logo.png" alt="P&P Electricidad" class="logo">
+                </div>
+                <h1>Iniciar Sesión</h1>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ingresar</button>
+                    <div id="loginError" class="error-message"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminPage" class="page">
+        <nav class="navbar">
+            <div class="nav-content">
+                <img src="logo.png" alt="P&P Electricidad" class="nav-logo">
+                <div class="nav-links">
+                    <a href="#" data-view="solicitudes" class="nav-link active">Solicitudes</a>
+                    <a href="#" data-view="despachos" class="nav-link">Despachos</a>
+                    <a href="#" data-view="reclamos" class="nav-link">Reclamos</a>
+                    <a href="#" data-view="reportes" class="nav-link">Reportes</a>
+                    <a href="#" data-view="usuarios" class="nav-link">Usuarios</a>
+                    <span class="session-info">Sesión activa (admin)</span>
+                    <button id="logoutBtnAdmin" class="btn btn-secondary btn-sm">Cerrar Sesión</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <!-- Solicitudes View -->
+            <div id="solicitudesView" class="view active">
+                <h2>Solicitudes Pendientes</h2>
+                <div id="solicitudesList"></div>
+            </div>
+
+            <!-- Despachos View -->
+            <div id="despachosView" class="view">
+                <h2>Despachos</h2>
+                <div id="despachosList"></div>
+            </div>
+
+            <!-- Reclamos View -->
+            <div id="reclamosView" class="view">
+                <h2>Reclamos</h2>
+                <div id="reclamosList"></div>
+            </div>
+
+            <!-- Reportes View -->
+            <div id="reportesView" class="view">
+                <h2>Reportes</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Solicitudes Pendientes</h3>
+                        <p class="stat-number" id="statPendientes">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Solicitudes Aprobadas</h3>
+                        <p class="stat-number" id="statAprobadas">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Solicitudes Rechazadas</h3>
+                        <p class="stat-number" id="statRechazadas">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Reclamos Activos</h3>
+                        <p class="stat-number" id="statReclamos">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usuarios View -->
+            <div id="usuariosView" class="view">
+                <h2>Gestión de Usuarios</h2>
+                <div class="card">
+                    <h3>Crear Nuevo Usuario Cliente</h3>
+                    <form id="createUserForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newUsername">Usuario</label>
+                                <input type="text" id="newUsername" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">Contraseña</label>
+                                <input type="password" id="newPassword" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newUserName">Nombre Completo</label>
+                                <input type="text" id="newUserName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserEmail">Email</label>
+                                <input type="email" id="newUserEmail" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="newUserPhone">Teléfono</label>
+                            <input type="tel" id="newUserPhone" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Crear Usuario</button>
+                        <div id="createUserMessage" class="success-message"></div>
+                    </form>
+                </div>
+
+                <div class="card" style="margin-top: 2rem;">
+                    <h3>Usuarios Registrados</h3>
+                    <div id="usersList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Dashboard -->
+    <div id="clientPage" class="page">
+        <nav class="navbar">
+            <div class="nav-content">
+                <img src="logo.png" alt="P&P Electricidad" class="nav-logo">
+                <div class="nav-links">
+                    <a href="#" data-view="nuevaSolicitud" class="nav-link-client active">Nueva Solicitud</a>
+                    <a href="#" data-view="misSolicitudes" class="nav-link-client">Mis Solicitudes</a>
+                    <a href="#" data-view="nuevoReclamo" class="nav-link-client">Nuevo Reclamo</a>
+                    <a href="#" data-view="misReclamos" class="nav-link-client">Mis Reclamos</a>
+                    <span class="session-info" id="clientSessionInfo">Sesión activa</span>
+                    <button id="logoutBtnClient" class="btn btn-secondary btn-sm">Cerrar Sesión</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <!-- Nueva Solicitud View -->
+            <div id="nuevaSolicitudView" class="view active">
+                <h2>Registro de Solicitud</h2>
+                <div class="card">
+                    <form id="nuevaSolicitudForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="clientName">Nombre del Cliente*</label>
+                                <input type="text" id="clientName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clientPhone">Teléfono*</label>
+                                <input type="tel" id="clientPhone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clientEmail">Correo Electrónico*</label>
+                                <input type="email" id="clientEmail" required>
+                            </div>
+                        </div>
+
+                        <h3>Productos</h3>
+                        <div id="productosContainer">
+                            <div class="producto-item">
+                                <div class="form-row">
+                                    <div class="form-group" style="flex: 2;">
+                                        <label>Producto</label>
+                                        <select class="producto-select" required>
+                                            <option value="">Seleccione un producto...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Cantidad</label>
+                                        <input type="number" class="cantidad-input" min="1" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Stock Disponible</label>
+                                        <input type="text" class="stock-display" readonly>
+                                    </div>
+                                </div>
+                                <div class="stock-warning" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="addProductBtn" class="btn btn-secondary">+ Agregar Producto</button>
+
+                        <div style="margin-top: 2rem;">
+                            <button type="button" id="verificarStockBtn" class="btn btn-primary">Verificar
+                                Stock</button>
+                            <button type="submit" id="confirmarSolicitudBtn" class="btn btn-success" disabled>Confirmar
+                                Solicitud</button>
+                        </div>
+
+                        <div id="solicitudMessage" class="message-box"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Mis Solicitudes View -->
+            <div id="misSolicitudesView" class="view">
+                <h2>Seguimiento de Pedidos</h2>
+                <div id="misSolicitudesList"></div>
+            </div>
+
+            <!-- Nuevo Reclamo View -->
+            <div id="nuevoReclamoView" class="view">
+                <h2>Registrar Reclamo</h2>
+                <div class="card">
+                    <form id="nuevoReclamoForm">
+                        <div class="form-group">
+                            <label for="reclamoNumPedido">Número de pedido</label>
+                            <input type="text" id="reclamoNumPedido" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reclamoDescripcion">Descripción</label>
+                            <textarea id="reclamoDescripcion" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Enviar</button>
+                        <div id="reclamoMessage" class="message-box"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Mis Reclamos View -->
+            <div id="misReclamosView" class="view">
+                <h2>Mis Reclamos</h2>
+                <div id="misReclamosList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Modal -->
+    <div id="validationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Validación de Pedido</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body" id="validationModalBody"></div>
+            <div class="modal-footer">
+                <button id="rechazarBtn" class="btn btn-secondary">Rechazar</button>
+                <button id="confirmarBtn" class="btn btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
