@@ -277,7 +277,13 @@ document.querySelectorAll('.nav-link-client').forEach(link => {
 // ==================== ADMIN DASHBOARD ====================
 
 function renderAdminDashboard() {
-    renderSolicitudes();
+    const reportesLink = document.querySelector('.nav-link[data-view="reportes"]');
+    if (reportesLink) {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        reportesLink.classList.add('active');
+        showView('reportesView');
+        renderReportes();
+    }
 }
 
 function renderSolicitudes() {
@@ -456,6 +462,14 @@ function renderDespachos() {
 
 function enviarALogistica(id) {
     appState.updateSolicitudStatus(id, 'distribution');
+    document.getElementById('statAprobadas').textContent = stats.approved;
+    document.getElementById('statRechazadas').textContent = stats.rejected;
+    document.getElementById('statReclamos').textContent = stats.reclamos;
+}
+
+function renderReportes() {
+    const stats = appState.getStats();
+    document.getElementById('statPendientes').textContent = stats.pending;
     document.getElementById('statAprobadas').textContent = stats.approved;
     document.getElementById('statRechazadas').textContent = stats.rejected;
     document.getElementById('statReclamos').textContent = stats.reclamos;
