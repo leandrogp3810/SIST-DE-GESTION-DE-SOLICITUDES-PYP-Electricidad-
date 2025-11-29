@@ -1,170 +1,535 @@
 <div id="nuevaSolicitudView" class="view active">
-	<h2>Registro de Solicitud</h2>
-	<div class="card">
-		<form id="nuevaSolicitudForm">
-			<div class="form-row">
-				<div class="form-group">
-					<label for="clientName">Nombre del Cliente*</label>
-					<input type="text" id="clientName" required />
-				</div>
-				<div class="form-group">
-					<label for="clientPhone">Teléfono*</label>
-					<input type="tel" id="clientPhone" required />
+	<div class="catalog-header">
+		<h2>Catálogo de Productos</h2>
+		<button id="cartBtn" class="btn btn-primary">
+			🛒 Ver Carrito (<span id="cartCount">0</span>)
+		</button>
+	</div>
+
+	<div id="catalogGrid" class="catalog-grid">
+		<!-- Products will be rendered here -->
+	</div>
+</div>
+
+<!-- Checkout Modal -->
+<div id="checkoutModal" class="modal">
+	<div class="modal-content">
+		<div class="modal-header">
+			<h2>Finalizar Pedido</h2>
+			<span class="close-modal">&times;</span>
+		</div>
+		<div class="modal-body">
+			<div id="cartSummary" class="cart-summary"></div>
+			
+			<form id="checkoutForm">
+				<h3>Datos del Cliente</h3>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="clientName">Nombre del Cliente*</label>
+						<input type="text" id="clientName" required />
+					</div>
+					<div class="form-group">
+						<label for="clientPhone">Teléfono*</label>
+						<input type="tel" id="clientPhone" required />
+					</div>
 				</div>
 				<div class="form-group">
 					<label for="clientEmail">Correo Electrónico*</label>
 					<input type="email" id="clientEmail" required />
 				</div>
-			</div>
 
-			<h3>Productos</h3>
-			<div id="productosContainer">
-				<div class="producto-item">
-					<div class="form-row">
-						<div class="form-group" style="flex: 2;">
-							<label>Producto</label>
-							<select class="producto-select" required>
-								<option value="">Seleccione un producto...</option>
-							</select>
-						</div>
-						<div class="form-group">
-							<label>Cantidad</label>
-							<input type="number" class="cantidad-input" min="1" required />
-						</div>
-						<div class="form-group">
-							<label>Stock Disponible</label>
-							<input type="text" class="stock-display" readonly />
-						</div>
-					</div>
-					<div class="stock-warning" style="display: none;"></div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
+					<button type="submit" class="btn btn-success">Confirmar Pedido</button>
 				</div>
-			</div>
-
-			<button type="button" id="addProductBtn" class="btn btn-secondary">+ Agregar Producto</button>
-
-			<div style="margin-top: 2rem;">
-				<button type="button" id="verificarStockBtn" class="btn btn-primary">Verificar Stock</button>
-				<button type="submit" id="confirmarSolicitudBtn" class="btn btn-success" disabled>Confirmar Solicitud</button>
-			</div>
-
-			<div id="solicitudMessage" class="message-box"></div>
-		</form>
+			</form>
+		</div>
 	</div>
 </div>
+
+<style is:global>
+	#nuevaSolicitudView .catalog-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 2rem;
+	}
+
+	#nuevaSolicitudView .catalog-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 2rem;
+		padding: 1rem;
+	}
+
+	#nuevaSolicitudView .product-card {
+		background: white;
+		border-radius: 12px;
+		padding: 1.5rem;
+		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--gray-200);
+	}
+
+	#nuevaSolicitudView .product-card:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+	}
+
+	/* Carousel Styles */
+	#nuevaSolicitudView .carousel {
+		position: relative;
+		width: 100%;
+		height: 250px;
+		margin-bottom: 1.5rem;
+		border-radius: 8px;
+		overflow: hidden;
+		background: #fff;
+		border: 1px solid var(--gray-100);
+	}
+
+	#nuevaSolicitudView .carousel-inner {
+		width: 100%;
+		height: 100%;
+		position: relative;
+	}
+
+	#nuevaSolicitudView .carousel-item {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		transition: opacity 0.4s ease-in-out;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		background: white;
+	}
+
+	#nuevaSolicitudView .carousel-item.active {
+		opacity: 1;
+		z-index: 1;
+	}
+
+	#nuevaSolicitudView .carousel-item img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	#nuevaSolicitudView .carousel-control {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		background: rgba(255, 255, 255, 0.8);
+		color: var(--gray-800);
+		border: 1px solid var(--gray-200);
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		z-index: 2;
+		transition: all 0.2s;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		font-size: 1.2rem;
+		opacity: 0;
+	}
+
+	#nuevaSolicitudView .carousel:hover .carousel-control {
+		opacity: 1;
+	}
+
+	#nuevaSolicitudView .carousel-control:hover {
+		background: var(--primary-color);
+		color: white;
+		border-color: var(--primary-color);
+	}
+
+	#nuevaSolicitudView .carousel-control.prev {
+		left: 10px;
+	}
+
+	#nuevaSolicitudView .carousel-control.next {
+		right: 10px;
+	}
+
+	#nuevaSolicitudView .product-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	#nuevaSolicitudView .product-info h3 {
+		font-size: 1.25rem;
+		font-weight: 600;
+		color: var(--gray-900);
+		margin: 0;
+	}
+
+	#nuevaSolicitudView .product-price {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--primary-color);
+	}
+
+	#nuevaSolicitudView .product-stock {
+		font-size: 0.875rem;
+		color: var(--gray-500);
+		margin-bottom: 0.5rem;
+	}
+
+	#nuevaSolicitudView .quantity-control {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+	}
+
+	#nuevaSolicitudView .quantity-input {
+		width: 80px;
+		padding: 0.5rem;
+		border: 1px solid var(--gray-300);
+		border-radius: 6px;
+		text-align: center;
+		font-size: 1rem;
+	}
+
+	#nuevaSolicitudView .add-to-cart-btn {
+		width: 100%;
+		padding: 0.75rem;
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+	}
+
+	/* Modal Styles need to be global too if not already */
+	#checkoutModal .cart-summary {
+		background: var(--gray-50);
+		padding: 1rem;
+		border-radius: 0.5rem;
+		margin-bottom: 2rem;
+		max-height: 300px;
+		overflow-y: auto;
+	}
+
+	#checkoutModal .cart-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 0;
+		border-bottom: 1px solid var(--gray-200);
+		gap: 1rem;
+	}
+
+	#checkoutModal .cart-item-info {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	#checkoutModal .cart-item-name {
+		font-weight: 600;
+		color: var(--gray-800);
+	}
+
+	#checkoutModal .cart-item-price {
+		font-size: 0.9rem;
+		color: var(--gray-500);
+	}
+
+	#checkoutModal .cart-item-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	#checkoutModal .btn-control {
+		width: 28px;
+		height: 28px;
+		border-radius: 4px;
+		border: 1px solid var(--gray-300);
+		background: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	#checkoutModal .btn-control:hover {
+		background: var(--gray-100);
+		border-color: var(--gray-400);
+	}
+
+	#checkoutModal .btn-control.remove-btn {
+		color: #dc2626;
+		border-color: #fecaca;
+		background: #fef2f2;
+		margin-left: 0.5rem;
+	}
+
+	#checkoutModal .btn-control.remove-btn:hover {
+		background: #fee2e2;
+		border-color: #fca5a5;
+	}
+
+	#checkoutModal .cart-item-quantity {
+		font-weight: 600;
+		min-width: 20px;
+		text-align: center;
+	}
+
+	#checkoutModal .cart-item-subtotal {
+		font-weight: 700;
+		color: var(--primary-color);
+		min-width: 80px;
+		text-align: right;
+	}
+
+	#checkoutModal .cart-total {
+		margin-top: 1rem;
+		text-align: right;
+		font-weight: 700;
+		font-size: 1.2rem;
+		padding-top: 1rem;
+		border-top: 2px solid var(--gray-200);
+	}
+</style>
 
 <script>
 	import { $currentUser, createSolicitud } from '../../stores/appStore';
 	import { PRODUCTS } from '../../stores/products';
 
-	const productosContainer = document.getElementById('productosContainer') as HTMLDivElement;
-	const addProductBtn = document.getElementById('addProductBtn') as HTMLButtonElement;
-	const verificarStockBtn = document.getElementById('verificarStockBtn') as HTMLButtonElement;
-	const confirmarSolicitudBtn = document.getElementById('confirmarSolicitudBtn') as HTMLButtonElement;
-	const solicitudMessage = document.getElementById('solicitudMessage') as HTMLDivElement;
-	const nuevaSolicitudForm = document.getElementById('nuevaSolicitudForm') as HTMLFormElement;
+	// State
+	let cart: Array<{ product: typeof PRODUCTS[0], quantity: number }> = [];
 
-	// Populate product selects
-	function populateProductSelect(select: HTMLSelectElement) {
-		select.innerHTML = '<option value="">Seleccione un producto...</option>';
-		PRODUCTS.forEach(product => {
-			const option = document.createElement('option');
-			option.value = product.id.toString();
-			option.textContent = product.name;
-			option.dataset.stock = product.stock.toString();
-			select.appendChild(option);
+	// DOM Elements
+	const catalogGrid = document.getElementById('catalogGrid');
+	const cartBtn = document.getElementById('cartBtn');
+	const cartCount = document.getElementById('cartCount');
+	const checkoutModal = document.getElementById('checkoutModal');
+	const cartSummary = document.getElementById('cartSummary');
+	const checkoutForm = document.getElementById('checkoutForm') as HTMLFormElement;
+	const closeModalBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
+
+	// Render Catalog
+	function renderCatalog() {
+		if (!catalogGrid) return;
+		
+		catalogGrid.innerHTML = PRODUCTS.map(product => `
+			<div class="product-card">
+				<div class="carousel" id="carousel-${product.id}">
+					<div class="carousel-inner">
+						${product.images.map((img, i) => `
+							<div class="carousel-item ${i === 0 ? 'active' : ''}">
+								<img src="${img}" alt="${product.name}">
+							</div>
+						`).join('')}
+					</div>
+					${product.images.length > 1 ? `
+						<button class="carousel-control prev" data-id="${product.id}">❮</button>
+						<button class="carousel-control next" data-id="${product.id}">❯</button>
+					` : ''}
+				</div>
+				<div class="product-info">
+					<h3>${product.name}</h3>
+					<div class="product-price">$${product.price}</div>
+					<div class="product-stock">Stock: ${product.stock}</div>
+					<div class="form-group" style="margin-bottom: 0.5rem;">
+						<input type="number" min="1" max="${product.stock}" value="1" class="quantity-input" id="qty-${product.id}" style="width: 100%;">
+					</div>
+					<button class="btn btn-primary add-to-cart-btn" data-id="${product.id}">
+						Agregar al Carrito
+					</button>
+				</div>
+			</div>
+		`).join('');
+
+		// Add event listeners
+		catalogGrid.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const target = e.target as HTMLButtonElement;
+				const id = parseInt(target.dataset.id || '0');
+				const qtyInput = document.getElementById(`qty-${id}`) as HTMLInputElement;
+				const quantity = parseInt(qtyInput.value);
+				
+				addToCart(id, quantity);
+			});
+		});
+
+		// Carousel listeners
+		catalogGrid.querySelectorAll('.carousel-control').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const target = e.target as HTMLButtonElement;
+				const id = target.dataset.id;
+				const carousel = document.getElementById(`carousel-${id}`);
+				if (!carousel) return;
+
+				const items = carousel.querySelectorAll('.carousel-item');
+				let activeIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
+				
+				items[activeIndex].classList.remove('active');
+
+				if (target.classList.contains('next')) {
+					activeIndex = (activeIndex + 1) % items.length;
+				} else {
+					activeIndex = (activeIndex - 1 + items.length) % items.length;
+				}
+
+				items[activeIndex].classList.add('active');
+			});
 		});
 	}
 
-	// Initialize first select
-	const firstSelect = productosContainer.querySelector('.producto-select') as HTMLSelectElement;
-	populateProductSelect(firstSelect);
+	// Cart Logic
+	function addToCart(productId: number, quantity: number) {
+		const product = PRODUCTS.find(p => p.id === productId);
+		if (!product) return;
 
-	// Handle product selection
-	productosContainer.addEventListener('change', (e) => {
-		const target = e.target as HTMLSelectElement;
-		if (target.classList.contains('producto-select')) {
-			const productoItem = target.closest('.producto-item') as HTMLDivElement;
-			const stockDisplay = productoItem.querySelector('.stock-display') as HTMLInputElement;
-			const selectedOption = target.options[target.selectedIndex];
-			
-			if (selectedOption.value) {
-				stockDisplay.value = selectedOption.dataset.stock || '0';
-			} else {
-				stockDisplay.value = '';
-			}
+		if (quantity > product.stock) {
+			alert('No hay suficiente stock');
+			return;
 		}
-	});
 
-	// Add product
-	addProductBtn.addEventListener('click', () => {
-		const newItem = document.createElement('div');
-		newItem.className = 'producto-item';
-		newItem.innerHTML = `
-			<div class="form-row">
-				<div class="form-group" style="flex: 2;">
-					<label>Producto</label>
-					<select class="producto-select" required>
-						<option value="">Seleccione un producto...</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label>Cantidad</label>
-					<input type="number" class="cantidad-input" min="1" required />
-				</div>
-				<div class="form-group">
-					<label>Stock Disponible</label>
-					<input type="text" class="stock-display" readonly />
-				</div>
-			</div>
-			<div class="stock-warning" style="display: none;"></div>
-		`;
-		
-		productosContainer.appendChild(newItem);
-		const select = newItem.querySelector('.producto-select') as HTMLSelectElement;
-		populateProductSelect(select);
-	});
-
-	// Verify stock
-	verificarStockBtn.addEventListener('click', () => {
-		let allValid = true;
-		const productoItems = productosContainer.querySelectorAll('.producto-item');
-
-		productoItems.forEach(item => {
-			const select = item.querySelector('.producto-select') as HTMLSelectElement;
-			const cantidadInput = item.querySelector('.cantidad-input') as HTMLInputElement;
-			const warning = item.querySelector('.stock-warning') as HTMLDivElement;
-
-			if (!select.value || !cantidadInput.value) {
-				allValid = false;
+		const existingItem = cart.find(item => item.product.id === productId);
+		if (existingItem) {
+			if (existingItem.quantity + quantity > product.stock) {
+				alert('No hay suficiente stock para agregar más');
 				return;
 			}
+			existingItem.quantity += quantity;
+		} else {
+			cart.push({ product, quantity });
+		}
 
-			const selectedOption = select.options[select.selectedIndex];
-			const stock = parseInt(selectedOption.dataset.stock || '0');
-			const cantidad = parseInt(cantidadInput.value);
+		updateCartUI();
+		alert('Producto agregado al carrito');
+	}
 
-			if (cantidad > stock) {
-				warning.textContent = `Stock insuficiente. Disponible: ${stock}`;
-				warning.style.display = 'flex';
-				allValid = false;
-			} else {
-				warning.style.display = 'none';
-			}
+	function updateCartUI() {
+		if (cartCount) {
+			cartCount.textContent = cart.reduce((acc, item) => acc + item.quantity, 0).toString();
+		}
+		// If modal is open, re-render summary
+		if (checkoutModal?.classList.contains('show')) {
+			renderCartSummary();
+		}
+	}
+
+	function renderCartSummary() {
+		if (!cartSummary) return;
+
+		if (cart.length === 0) {
+			cartSummary.innerHTML = '<p>El carrito está vacío</p>';
+			return;
+		}
+
+		const total = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+
+		cartSummary.innerHTML = `
+			<h4>Resumen del Pedido</h4>
+			<div class="cart-items-list">
+				${cart.map(item => `
+					<div class="cart-item" data-id="${item.product.id}">
+						<div class="cart-item-info">
+							<span class="cart-item-name">${item.product.name}</span>
+							<span class="cart-item-price">$${item.product.price} c/u</span>
+						</div>
+						<div class="cart-item-controls">
+							<button type="button" class="btn-control decrease-btn" data-id="${item.product.id}">-</button>
+							<span class="cart-item-quantity">${item.quantity}</span>
+							<button type="button" class="btn-control increase-btn" data-id="${item.product.id}">+</button>
+							<button type="button" class="btn-control remove-btn" data-id="${item.product.id}">🗑️</button>
+						</div>
+						<div class="cart-item-subtotal">
+							$${item.product.price * item.quantity}
+						</div>
+					</div>
+				`).join('')}
+			</div>
+			<div class="cart-total">Total: $${total}</div>
+		`;
+
+		// Attach listeners
+		cartSummary.querySelectorAll('.decrease-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const id = parseInt((e.target as HTMLElement).dataset.id || '0');
+				updateItemQuantity(id, -1);
+			});
 		});
 
-		if (allValid) {
-			confirmarSolicitudBtn.disabled = false;
-			solicitudMessage.textContent = 'Stock verificado. Puede confirmar la solicitud.';
-			solicitudMessage.className = 'message-box success show';
-		} else {
-			confirmarSolicitudBtn.disabled = true;
-			solicitudMessage.textContent = 'Por favor, corrija los errores antes de continuar.';
-			solicitudMessage.className = 'message-box error show';
+		cartSummary.querySelectorAll('.increase-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const id = parseInt((e.target as HTMLElement).dataset.id || '0');
+				updateItemQuantity(id, 1);
+			});
+		});
+
+		cartSummary.querySelectorAll('.remove-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const id = parseInt((e.target as HTMLElement).dataset.id || '0');
+				removeFromCart(id);
+			});
+		});
+	}
+
+	function updateItemQuantity(productId: number, change: number) {
+		const itemIndex = cart.findIndex(item => item.product.id === productId);
+		if (itemIndex === -1) return;
+
+		const item = cart[itemIndex];
+		const newQuantity = item.quantity + change;
+
+		if (newQuantity <= 0) {
+			removeFromCart(productId);
+			return;
 		}
+
+		if (newQuantity > item.product.stock) {
+			alert('No hay más stock disponible');
+			return;
+		}
+
+		item.quantity = newQuantity;
+		updateCartUI();
+	}
+
+	function removeFromCart(productId: number) {
+		cart = cart.filter(item => item.product.id !== productId);
+		updateCartUI();
+		if (cart.length === 0) {
+			checkoutModal?.classList.remove('show');
+		}
+	}
+
+	// Modal Logic
+	cartBtn?.addEventListener('click', () => {
+		if (cart.length === 0) {
+			alert('El carrito está vacío');
+			return;
+		}
+		renderCartSummary();
+		checkoutModal?.classList.add('show');
 	});
 
-	// Submit form
-	nuevaSolicitudForm.addEventListener('submit', (e) => {
+	closeModalBtns.forEach(btn => {
+		btn.addEventListener('click', () => {
+			checkoutModal?.classList.remove('show');
+		});
+	});
+
+	// Checkout Logic
+	checkoutForm.addEventListener('submit', (e) => {
 		e.preventDefault();
 
 		const currentUser = $currentUser.get();
@@ -173,42 +538,29 @@
 			return;
 		}
 
-		const formData = new FormData(nuevaSolicitudForm);
-		const productos: Array<{ productId: number; productName: string; cantidad: number }> = [];
-
-		const productoItems = productosContainer.querySelectorAll('.producto-item');
-		productoItems.forEach(item => {
-			const select = item.querySelector('.producto-select') as HTMLSelectElement;
-			const cantidadInput = item.querySelector('.cantidad-input') as HTMLInputElement;
-
-			if (select.value && cantidadInput.value) {
-				const selectedOption = select.options[select.selectedIndex];
-				productos.push({
-					productId: parseInt(select.value),
-					productName: selectedOption.textContent || '',
-					cantidad: parseInt(cantidadInput.value)
-				});
-			}
-		});
-
+		const formData = new FormData(checkoutForm);
+		
 		const solicitudData = {
 			username: currentUser.username,
-			clientName: (document.getElementById('clientName') as HTMLInputElement).value,
-			clientPhone: (document.getElementById('clientPhone') as HTMLInputElement).value,
-			clientEmail: (document.getElementById('clientEmail') as HTMLInputElement).value,
-			productos
+			clientName: formData.get('clientName') as string || (document.getElementById('clientName') as HTMLInputElement).value,
+			clientPhone: formData.get('clientPhone') as string || (document.getElementById('clientPhone') as HTMLInputElement).value,
+			clientEmail: formData.get('clientEmail') as string || (document.getElementById('clientEmail') as HTMLInputElement).value,
+			productos: cart.map(item => ({
+				productId: item.product.id,
+				productName: item.product.name,
+				cantidad: item.quantity
+			}))
 		};
 
 		createSolicitud(solicitudData);
 
-		solicitudMessage.textContent = 'Solicitud creada exitosamente';
-		solicitudMessage.className = 'message-box success show';
-
-		nuevaSolicitudForm.reset();
-		confirmarSolicitudBtn.disabled = true;
-
-		setTimeout(() => {
-			solicitudMessage.classList.remove('show');
-		}, 3000);
+		alert('¡Pedido realizado con éxito!');
+		cart = [];
+		updateCartUI();
+		checkoutForm.reset();
+		checkoutModal?.classList.remove('show');
 	});
+
+	// Initial Render
+	renderCatalog();
 </script>
