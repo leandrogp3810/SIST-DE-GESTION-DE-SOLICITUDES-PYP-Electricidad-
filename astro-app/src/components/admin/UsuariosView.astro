@@ -1,0 +1,130 @@
+<div id="usuariosView" class="view">
+	<h2>Gestión de Usuarios</h2>
+	<div class="card">
+		<h3>Crear Nuevo Usuario Cliente</h3>
+		<form id="createUserForm">
+			<div class="form-row">
+				<div class="form-group">
+					<label for="newUsername">Usuario</label>
+					<input type="text" id="newUsername" required />
+				</div>
+				<div class="form-group">
+					<label for="newPassword">Contraseña</label>
+					<input type="password" id="newPassword" required />
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group">
+					<label for="newUserName">Nombre Completo</label>
+					<input type="text" id="newUserName" required />
+				</div>
+				<div class="form-group">
+					<label for="newUserEmail">Email</label>
+					<input type="email" id="newUserEmail" required />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="newUserPhone">Teléfono</label>
+				<input type="tel" id="newUserPhone" required />
+			</div>
+			<button type="submit" class="btn btn-primary">Crear Usuario</button>
+			<div id="createUserMessage" class="success-message"></div>
+		</form>
+	</div>
+
+	<div class="card" style="margin-top: 2rem;">
+		<h3>Usuarios Registrados</h3>
+		<div id="usersList"></div>
+	</div>
+</div>
+
+<script>
+	import { $users, createUser } from '../../stores/appStore';
+
+	function renderUsuarios() {
+		const users = $users.get();
+		const container = document.getElementById('usersList');
+		
+		if (!container) return;
+
+		const clientUsers = users.filter(u => u.role === 'client');
+
+		if (clientUsers.length === 0) {
+			container.innerHTML = `
+				<div class="empty-state">
+					<h3>No hay usuarios registrados</h3>
+					<p>Los usuarios creados aparecerán aquí</p>
+				</div>
+			`;
+			return;
+		}
+
+		container.innerHTML = `
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Usuario</th>
+						<th>Nombre</th>
+						<th>Email</th>
+						<th>Teléfono</th>
+					</tr>
+				</thead>
+				<tbody>
+					${clientUsers.map(user => `
+						<tr>
+							<td>${user.username}</td>
+							<td>${user.name || '-'}</td>
+							<td>${user.email || '-'}</td>
+							<td>${user.phone || '-'}</td>
+						</tr>
+					`).join('')}
+				</tbody>
+			</table>
+		`;
+	}
+
+	// Form submission
+	const createUserForm = document.getElementById('createUserForm') as HTMLFormElement;
+	const createUserMessage = document.getElementById('createUserMessage') as HTMLDivElement;
+
+	createUserForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+
+		const formData = new FormData(createUserForm);
+		const userData = {
+			username: formData.get('newUsername') as string,
+			password: formData.get('newPassword') as string,
+			name: formData.get('newUserName') as string,
+			email: formData.get('newUserEmail') as string,
+			phone: formData.get('newUserPhone') as string
+		};
+
+		const result = createUser(userData);
+
+		createUserMessage.textContent = result.message;
+		createUserMessage.className = result.success ? 'success-message show' : 'error-message show';
+
+		if (result.success) {
+			createUserForm.reset();
+			renderUsuarios();
+		}
+
+		setTimeout(() => {
+			createUserMessage.classList.remove('show');
+		}, 3000);
+	});
+
+	// Initial render
+	renderUsuarios();
+
+	// Subscribe to changes
+	$users.subscribe(renderUsuarios);
+
+	// Re-render when view becomes active
+	window.addEventListener('viewChange', (e: Event) => {
+		const customEvent = e as CustomEvent;
+		if (customEvent.detail.viewId === 'usuarios') {
+			renderUsuarios();
+		}
+	});
+</script>

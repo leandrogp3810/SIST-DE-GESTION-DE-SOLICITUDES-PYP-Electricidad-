@@ -1,0 +1,57 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="P&P Electricidad - Iniciar Sesión">
+	<div class="login-container">
+		<div class="login-card">
+			<div class="logo-container">
+				<img src="/logo.png" alt="P&P Electricidad" class="logo" />
+			</div>
+			<h1>Iniciar Sesión</h1>
+			<form id="loginForm">
+				<div class="form-group">
+					<label for="username">Usuario</label>
+					<input type="text" id="username" name="username" required />
+				</div>
+				<div class="form-group">
+					<label for="password">Contraseña</label>
+					<input type="password" id="password" name="password" required />
+				</div>
+				<button type="submit" class="btn btn-primary">Ingresar</button>
+				<div id="loginError" class="error-message"></div>
+			</form>
+		</div>
+	</div>
+</Layout>
+
+<script>
+	import { login } from '../stores/appStore';
+
+	const loginForm = document.getElementById('loginForm') as HTMLFormElement;
+	const loginError = document.getElementById('loginError') as HTMLDivElement;
+
+	loginForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+
+		const formData = new FormData(loginForm);
+		const username = formData.get('username') as string;
+		const password = formData.get('password') as string;
+
+		const user = login(username, password);
+
+		if (user) {
+			if (user.role === 'admin') {
+				window.location.href = '/admin';
+			} else {
+				window.location.href = '/client';
+			}
+		} else {
+			loginError.textContent = 'Usuario o contraseña incorrectos';
+			loginError.classList.add('show');
+			setTimeout(() => {
+				loginError.classList.remove('show');
+			}, 3000);
+		}
+	});
+</script>

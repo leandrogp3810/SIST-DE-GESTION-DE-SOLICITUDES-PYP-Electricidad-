@@ -1,0 +1,57 @@
+<div id="reclamosView" class="view">
+	<h2>Reclamos</h2>
+	<div id="reclamosList"></div>
+</div>
+
+<script>
+	import { $reclamos } from '../../stores/appStore';
+
+	function renderReclamos() {
+		const reclamos = $reclamos.get();
+		const container = document.getElementById('reclamosList');
+		
+		if (!container) return;
+
+		if (reclamos.length === 0) {
+			container.innerHTML = `
+				<div class="empty-state">
+					<h3>No hay reclamos registrados</h3>
+					<p>Los reclamos de clientes aparecerán aquí</p>
+				</div>
+			`;
+			return;
+		}
+
+		container.innerHTML = reclamos.map(reclamo => `
+			<div class="card">
+				<div class="solicitud-header">
+					<h3>Reclamo #${reclamo.id}</h3>
+					<span class="badge ${reclamo.status === 'open' ? 'badge-pending' : 'badge-approved'}">
+						${reclamo.status === 'open' ? 'Abierto' : 'Cerrado'}
+					</span>
+				</div>
+				<div class="solicitud-info">
+					<p><strong>Usuario:</strong> ${reclamo.username}</p>
+					<p><strong>Número de Pedido:</strong> ${reclamo.numPedido}</p>
+					<p><strong>Fecha:</strong> ${reclamo.fecha}</p>
+					<p><strong>Descripción:</strong></p>
+					<p>${reclamo.descripcion}</p>
+				</div>
+			</div>
+		`).join('');
+	}
+
+	// Initial render
+	renderReclamos();
+
+	// Subscribe to changes
+	$reclamos.subscribe(renderReclamos);
+
+	// Re-render when view becomes active
+	window.addEventListener('viewChange', (e: Event) => {
+		const customEvent = e as CustomEvent;
+		if (customEvent.detail.viewId === 'reclamos') {
+			renderReclamos();
+		}
+	});
+</script>

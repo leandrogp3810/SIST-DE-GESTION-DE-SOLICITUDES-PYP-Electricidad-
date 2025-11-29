@@ -1,0 +1,52 @@
+<div id="nuevoReclamoView" class="view">
+	<h2>Registrar Reclamo</h2>
+	<div class="card">
+		<form id="nuevoReclamoForm">
+			<div class="form-group">
+				<label for="reclamoNumPedido">Número de pedido</label>
+				<input type="text" id="reclamoNumPedido" required />
+			</div>
+			<div class="form-group">
+				<label for="reclamoDescripcion">Descripción</label>
+				<textarea id="reclamoDescripcion" rows="5" required></textarea>
+			</div>
+			<button type="submit" class="btn btn-primary">Enviar</button>
+			<div id="reclamoMessage" class="message-box"></div>
+		</form>
+	</div>
+</div>
+
+<script>
+	import { $currentUser, createReclamo } from '../../stores/appStore';
+
+	const nuevoReclamoForm = document.getElementById('nuevoReclamoForm') as HTMLFormElement;
+	const reclamoMessage = document.getElementById('reclamoMessage') as HTMLDivElement;
+
+	nuevoReclamoForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+
+		const currentUser = $currentUser.get();
+		if (!currentUser) {
+			window.location.href = '/';
+			return;
+		}
+
+		const formData = new FormData(nuevoReclamoForm);
+		const reclamoData = {
+			username: currentUser.username,
+			numPedido: formData.get('reclamoNumPedido') as string,
+			descripcion: formData.get('reclamoDescripcion') as string
+		};
+
+		createReclamo(reclamoData);
+
+		reclamoMessage.textContent = 'Reclamo registrado exitosamente';
+		reclamoMessage.className = 'message-box success show';
+
+		nuevoReclamoForm.reset();
+
+		setTimeout(() => {
+			reclamoMessage.classList.remove('show');
+		}, 3000);
+	});
+</script>

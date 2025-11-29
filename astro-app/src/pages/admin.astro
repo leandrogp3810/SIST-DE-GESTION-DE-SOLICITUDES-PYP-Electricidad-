@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/shared/Navbar.astro';
+import ReportesView from '../components/admin/ReportesView.astro';
+import SolicitudesView from '../components/admin/SolicitudesView.astro';
+import DespachosView from '../components/admin/DespachosView.astro';
+import ReclamosView from '../components/admin/ReclamosView.astro';
+import UsuariosView from '../components/admin/UsuariosView.astro';
+---
+
+<Layout title="P&P Electricidad - Panel de Administración">
+	<Navbar role="admin" />
+	
+	<div class="container">
+		<ReportesView />
+		<SolicitudesView />
+		<DespachosView />
+		<ReclamosView />
+		<UsuariosView />
+	</div>
+</Layout>
+
+<script>
+	import { $currentUser } from '../stores/appStore';
+
+	// Check if user is logged in and is admin
+	const currentUser = $currentUser.get();
+	if (!currentUser || currentUser.role !== 'admin') {
+		window.location.href = '/';
+	}
+</script>

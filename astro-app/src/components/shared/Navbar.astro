@@ -1,0 +1,83 @@
+---
+interface Props {
+	role: 'admin' | 'client';
+	username?: string;
+}
+
+const { role, username } = Astro.props;
+
+const adminLinks = [
+	{ id: 'reportes', label: 'Reportes' },
+	{ id: 'solicitudes', label: 'Solicitudes' },
+	{ id: 'despachos', label: 'Despachos' },
+	{ id: 'reclamos', label: 'Reclamos' },
+	{ id: 'usuarios', label: 'Usuarios' }
+];
+
+const clientLinks = [
+	{ id: 'nuevaSolicitud', label: 'Nueva Solicitud' },
+	{ id: 'misSolicitudes', label: 'Mis Solicitudes' },
+	{ id: 'nuevoReclamo', label: 'Nuevo Reclamo' },
+	{ id: 'misReclamos', label: 'Mis Reclamos' }
+];
+
+const links = role === 'admin' ? adminLinks : clientLinks;
+---
+
+<nav class="navbar">
+	<div class="nav-content">
+		<img src="/logo.png" alt="P&P Electricidad" class="nav-logo" />
+		<div class="nav-links">
+			{links.map((link, index) => (
+				<a 
+					href="#" 
+					data-view={link.id} 
+					class={`nav-link ${index === 0 ? 'active' : ''}`}
+				>
+					{link.label}
+				</a>
+			))}
+			<span class="session-info">
+				Sesión activa {username ? `(${username})` : role === 'admin' ? '(admin)' : ''}
+			</span>
+			<button id="logoutBtn" class="btn btn-secondary btn-sm">Cerrar Sesión</button>
+		</div>
+	</div>
+</nav>
+
+<script>
+	import { logout } from '../../stores/appStore';
+
+	// Navigation handling
+	document.querySelectorAll('.nav-link').forEach(link => {
+		link.addEventListener('click', (e) => {
+			e.preventDefault();
+			
+			const target = e.target as HTMLAnchorElement;
+			const viewId = target.dataset.view;
+			
+			// Update active link
+			document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+			target.classList.add('active');
+			
+			// Show corresponding view
+			document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+			const view = document.getElementById(`${viewId}View`);
+			if (view) {
+				view.classList.add('active');
+				
+				// Dispatch custom event for view change
+				window.dispatchEvent(new CustomEvent('viewChange', { detail: { viewId } }));
+			}
+		});
+	});
+
+	// Logout handling
+	const logoutBtn = document.getElementById('logoutBtn');
+	if (logoutBtn) {
+		logoutBtn.addEventListener('click', () => {
+			logout();
+			window.location.href = '/';
+		});
+	}
+</script>

@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/shared/Navbar.astro';
+import NuevaSolicitudView from '../components/client/NuevaSolicitudView.astro';
+import MisSolicitudesView from '../components/client/MisSolicitudesView.astro';
+import NuevoReclamoView from '../components/client/NuevoReclamoView.astro';
+import MisReclamosView from '../components/client/MisReclamosView.astro';
+---
+
+<Layout title="P&P Electricidad - Panel de Cliente">
+	<Navbar role="client" />
+	
+	<div class="container">
+		<NuevaSolicitudView />
+		<MisSolicitudesView />
+		<NuevoReclamoView />
+		<MisReclamosView />
+	</div>
+</Layout>
+
+<script>
+	import { $currentUser } from '../stores/appStore';
+
+	// Check if user is logged in and is client
+	const currentUser = $currentUser.get();
+	if (!currentUser || currentUser.role !== 'client') {
+		window.location.href = '/';
+	}
+</script>

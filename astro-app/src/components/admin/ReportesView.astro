@@ -1,0 +1,47 @@
+<div id="reportesView" class="view active">
+	<h2>Reportes</h2>
+	<div class="stats-grid">
+		<div class="stat-card">
+			<h3>Solicitudes Pendientes</h3>
+			<p class="stat-number" id="statPendientes">0</p>
+		</div>
+		<div class="stat-card">
+			<h3>Solicitudes Aprobadas</h3>
+			<p class="stat-number" id="statAprobadas">0</p>
+		</div>
+		<div class="stat-card">
+			<h3>Solicitudes Rechazadas</h3>
+			<p class="stat-number" id="statRechazadas">0</p>
+		</div>
+		<div class="stat-card">
+			<h3>Reclamos Activos</h3>
+			<p class="stat-number" id="statReclamos">0</p>
+		</div>
+	</div>
+</div>
+
+<script>
+	import { $solicitudes, $reclamos, getStats } from '../../stores/appStore';
+
+
+	function updateStats() {
+		const stats = getStats();
+		
+		const statPendientes = document.getElementById('statPendientes');
+		const statAprobadas = document.getElementById('statAprobadas');
+		const statRechazadas = document.getElementById('statRechazadas');
+		const statReclamos = document.getElementById('statReclamos');
+		
+		if (statPendientes) statPendientes.textContent = stats.pendientes.toString();
+		if (statAprobadas) statAprobadas.textContent = stats.aprobadas.toString();
+		if (statRechazadas) statRechazadas.textContent = stats.rechazadas.toString();
+		if (statReclamos) statReclamos.textContent = stats.reclamos.toString();
+	}
+
+	// Initial load
+	updateStats();
+
+	// Subscribe to changes
+	$solicitudes.subscribe(updateStats);
+	$reclamos.subscribe(updateStats);
+</script>

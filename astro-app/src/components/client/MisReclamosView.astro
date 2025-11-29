@@ -1,0 +1,62 @@
+<div id="misReclamosView" class="view">
+	<h2>Mis Reclamos</h2>
+	<div id="misReclamosList"></div>
+</div>
+
+<script>
+	import { $currentUser, $reclamos, getReclamosByUser } from '../../stores/appStore';
+
+	function renderMisReclamos() {
+		const currentUser = $currentUser.get();
+		if (!currentUser) {
+			window.location.href = '/';
+			return;
+		}
+
+		const reclamos = getReclamosByUser(currentUser.username);
+		const container = document.getElementById('misReclamosList');
+		
+		if (!container) return;
+
+		if (reclamos.length === 0) {
+			container.innerHTML = `
+				<div class="empty-state">
+					<h3>No tiene reclamos registrados</h3>
+					<p>Sus reclamos aparecerán aquí</p>
+				</div>
+			`;
+			return;
+		}
+
+		container.innerHTML = reclamos.map(reclamo => `
+			<div class="card">
+				<div class="solicitud-header">
+					<h3>Reclamo #${reclamo.id}</h3>
+					<span class="badge ${reclamo.status === 'open' ? 'badge-pending' : 'badge-approved'}">
+						${reclamo.status === 'open' ? 'Abierto' : 'Cerrado'}
+					</span>
+				</div>
+				<div class="solicitud-info">
+					<p><strong>Número de Pedido:</strong> ${reclamo.numPedido}</p>
+					<p><strong>Fecha:</strong> ${reclamo.fecha}</p>
+					<p><strong>Descripción:</strong></p>
+					<p>${reclamo.descripcion}</p>
+				</div>
+			</div>
+		`).join('');
+	}
+
+	// Initial render
+	renderMisReclamos();
+
+	// Subscribe to changes
+	$reclamos.subscribe(renderMisReclamos);
+
+	// Re-render when view becomes active
+	window.addEventListener('viewChange', (e: Event) => {
+		const customEvent = e as CustomEvent;
+		if (customEvent.detail.viewId === 'misReclamos') {
+			renderMisReclamos();
+		}
+	});
+</script>

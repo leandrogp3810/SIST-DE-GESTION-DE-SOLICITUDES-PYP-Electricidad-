@@ -1,0 +1,90 @@
+<div id="solicitudesView" class="view">
+	<h2>Solicitudes Pendientes</h2>
+	<div id="solicitudesList"></div>
+</div>
+
+<script>
+	import { $solicitudes, updateSolicitudStatus } from '../../stores/appStore';
+
+	function renderSolicitudes() {
+		const solicitudes = $solicitudes.get();
+		const pendingSolicitudes = solicitudes.filter(s => s.status === 'pending');
+		const container = document.getElementById('solicitudesList');
+		
+		if (!container) return;
+
+		if (pendingSolicitudes.length === 0) {
+			container.innerHTML = `
+				<div class="empty-state">
+					<h3>No hay solicitudes pendientes</h3>
+					<p>Las nuevas solicitudes aparecerán aquí</p>
+				</div>
+			`;
+			return;
+		}
+
+		container.innerHTML = pendingSolicitudes.map(solicitud => `
+			<div class="solicitud-card">
+				<div class="solicitud-header">
+					<h3>Solicitud #${solicitud.id}</h3>
+					<span class="badge badge-pending">Pendiente</span>
+				</div>
+				<div class="solicitud-info">
+					<p><strong>Cliente:</strong> ${solicitud.clientName}</p>
+					<p><strong>Teléfono:</strong> ${solicitud.clientPhone}</p>
+					<p><strong>Email:</strong> ${solicitud.clientEmail}</p>
+					<p><strong>Fecha:</strong> ${solicitud.fecha}</p>
+					<p><strong>Productos:</strong></p>
+					<ul>
+						${solicitud.productos.map(p => `
+							<li>${p.productName} - Cantidad: ${p.cantidad}</li>
+						`).join('')}
+					</ul>
+				</div>
+				<div class="solicitud-actions">
+					<button class="btn btn-success" data-action="approve" data-id="${solicitud.id}">
+						Aprobar
+					</button>
+					<button class="btn btn-danger" data-action="reject" data-id="${solicitud.id}">
+						Rechazar
+					</button>
+				</div>
+			</div>
+		`).join('');
+
+		// Add event listeners
+		container.querySelectorAll('[data-action]').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const target = e.target as HTMLButtonElement;
+				const action = target.dataset.action;
+				const id = target.dataset.id;
+
+				if (!id) return;
+
+				if (action === 'approve') {
+					updateSolicitudStatus(id, 'approved');
+					alert('Solicitud aprobada exitosamente');
+				} else if (action === 'reject') {
+					updateSolicitudStatus(id, 'rejected');
+					alert('Solicitud rechazada');
+				}
+
+				renderSolicitudes();
+			});
+		});
+	}
+
+	// Initial render
+	renderSolicitudes();
+
+	// Subscribe to changes
+	$solicitudes.subscribe(renderSolicitudes);
+
+	// Re-render when view becomes active
+	window.addEventListener('viewChange', (e: Event) => {
+		const customEvent = e as CustomEvent;
+		if (customEvent.detail.viewId === 'solicitudes') {
+			renderSolicitudes();
+		}
+	});
+</script>

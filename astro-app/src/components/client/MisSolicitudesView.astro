@@ -1,0 +1,74 @@
+<div id="misSolicitudesView" class="view">
+	<h2>Seguimiento de Pedidos</h2>
+	<div id="misSolicitudesList"></div>
+</div>
+
+<script>
+	import { $currentUser, $solicitudes, getSolicitudesByUser } from '../../stores/appStore';
+
+	function renderMisSolicitudes() {
+		const currentUser = $currentUser.get();
+		if (!currentUser) {
+			window.location.href = '/';
+			return;
+		}
+
+		const solicitudes = getSolicitudesByUser(currentUser.username);
+		const container = document.getElementById('misSolicitudesList');
+		
+		if (!container) return;
+
+		if (solicitudes.length === 0) {
+			container.innerHTML = `
+				<div class="empty-state">
+					<h3>No tiene solicitudes registradas</h3>
+					<p>Sus solicitudes aparecerán aquí</p>
+				</div>
+			`;
+			return;
+		}
+
+		const statusLabels: Record<string, { label: string; class: string }> = {
+			pending: { label: 'Pendiente', class: 'badge-pending' },
+			approved: { label: 'Aprobado', class: 'badge-approved' },
+			rejected: { label: 'Rechazado', class: 'badge-rejected' },
+			distribution: { label: 'En Distribución', class: 'badge-distribution' }
+		};
+
+		container.innerHTML = solicitudes.map(solicitud => {
+			const status = statusLabels[solicitud.status] || { label: solicitud.status, class: '' };
+			return `
+				<div class="solicitud-card">
+					<div class="solicitud-header">
+						<h3>Pedido #${solicitud.id}</h3>
+						<span class="badge ${status.class}">${status.label}</span>
+					</div>
+					<div class="solicitud-info">
+						<p><strong>Fecha:</strong> ${solicitud.fecha}</p>
+						<p><strong>Cliente:</strong> ${solicitud.clientName}</p>
+						<p><strong>Productos:</strong></p>
+						<ul>
+							${solicitud.productos.map(p => `
+								<li>${p.productName} - Cantidad: ${p.cantidad}</li>
+							`).join('')}
+						</ul>
+					</div>
+				</div>
+			`;
+		}).join('');
+	}
+
+	// Initial render
+	renderMisSolicitudes();
+
+	// Subscribe to changes
+	$solicitudes.subscribe(renderMisSolicitudes);
+
+	// Re-render when view becomes active
+	window.addEventListener('viewChange', (e: Event) => {
+		const customEvent = e as CustomEvent;
+		if (customEvent.detail.viewId === 'misSolicitudes') {
+			renderMisSolicitudes();
+		}
+	});
+</script>

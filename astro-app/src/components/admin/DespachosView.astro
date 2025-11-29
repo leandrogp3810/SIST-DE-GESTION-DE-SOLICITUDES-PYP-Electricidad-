@@ -1,0 +1,80 @@
+<div id="despachosView" class="view">
+	<h2>Despachos</h2>
+	<div id="despachosList"></div>
+</div>
+
+<script>
+	import { $solicitudes, updateSolicitudStatus } from '../../stores/appStore';
+
+	function renderDespachos() {
+		const solicitudes = $solicitudes.get();
+		const approvedSolicitudes = solicitudes.filter(s => s.status === 'approved');
+		const container = document.getElementById('despachosList');
+		
+		if (!container) return;
+
+		if (approvedSolicitudes.length === 0) {
+			container.innerHTML = `
+				<div class="empty-state">
+					<h3>No hay despachos pendientes</h3>
+					<p>Las solicitudes aprobadas aparecerán aquí</p>
+				</div>
+			`;
+			return;
+		}
+
+		container.innerHTML = approvedSolicitudes.map(solicitud => `
+			<div class="solicitud-card">
+				<div class="solicitud-header">
+					<h3>Despacho #${solicitud.id}</h3>
+					<span class="badge badge-approved">Aprobado</span>
+				</div>
+				<div class="solicitud-info">
+					<p><strong>Cliente:</strong> ${solicitud.clientName}</p>
+					<p><strong>Teléfono:</strong> ${solicitud.clientPhone}</p>
+					<p><strong>Email:</strong> ${solicitud.clientEmail}</p>
+					<p><strong>Fecha:</strong> ${solicitud.fecha}</p>
+					<p><strong>Productos:</strong></p>
+					<ul>
+						${solicitud.productos.map(p => `
+							<li>${p.productName} - Cantidad: ${p.cantidad}</li>
+						`).join('')}
+					</ul>
+				</div>
+				<div class="solicitud-actions">
+					<button class="btn btn-primary" data-action="send" data-id="${solicitud.id}">
+						Enviar a Logística
+					</button>
+				</div>
+			</div>
+		`).join('');
+
+		// Add event listeners
+		container.querySelectorAll('[data-action="send"]').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const target = e.target as HTMLButtonElement;
+				const id = target.dataset.id;
+
+				if (!id) return;
+
+				updateSolicitudStatus(id, 'distribution');
+				alert('Pedido enviado a logística');
+				renderDespachos();
+			});
+		});
+	}
+
+	// Initial render
+	renderDespachos();
+
+	// Subscribe to changes
+	$solicitudes.subscribe(renderDespachos);
+
+	// Re-render when view becomes active
+	window.addEventListener('viewChange', (e: Event) => {
+		const customEvent = e as CustomEvent;
+		if (customEvent.detail.viewId === 'despachos') {
+			renderDespachos();
+		}
+	});
+</script>

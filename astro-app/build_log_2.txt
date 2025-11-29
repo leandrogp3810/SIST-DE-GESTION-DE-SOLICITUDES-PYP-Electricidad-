@@ -1,0 +1,49 @@
+
+> astro-app@0.0.1 build
+> astro build
+
+[2m15:59:05[22m [34m[content][39m Syncing content
+[2m15:59:05[22m [34m[content][39m Synced content
+[2m15:59:05[22m [34m[types][39m Generated [2m66ms[22m
+[2m15:59:05[22m [34m[build][39m output: [34m"static"[39m
+[2m15:59:05[22m [34m[build][39m mode: [34m"static"[39m
+[2m15:59:05[22m [34m[build][39m directory: [34mC:\Users\leandro prado\Desktop\SIST-DE-GESTION-DE-SOLICITUDES-PYP-Electricidad-\astro-app\dist\[39m
+[2m15:59:05[22m [34m[build][39m Collecting build info...
+[2m15:59:05[22m [34m[build][39m [32mΓ£ô Completed in 91ms.[39m
+[2m15:59:05[22m [34m[build][39m Building static entrypoints...
+[33m[1m15:59:07[22m [WARN] [vite][39m [33m"isRemoteAllowed", "matchHostname", "matchPathname", "matchPort" and "matchProtocol" are imported from external module "@astrojs/internal-helpers/remote" but never used in "node_modules/astro/dist/assets/utils/remotePattern.js".[39m
+[2m15:59:07[22m [34m[vite][39m [32mΓ£ô built in 1.18s[39m
+[2m15:59:07[22m [34m[build][39m [32mΓ£ô Completed in 1.24s.[39m
+
+[42m[30m building client (vite) [39m[49m
+[2m15:59:07[22m [34m[vite][39m transforming...
+[2m15:59:07[22m [34m[vite][39m [32mΓ£ô[39m 29 modules transformed.
+[2m15:59:07[22m [34m[vite][39m rendering chunks...
+[2m15:59:07[22m [34m[vite][39m computing gzip size...
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/admin.astro_astro_type_script_index_0_lang.C_OTL84m.js               [39m[1m[2m0.11 kB[22m[1m[22m[2m Γöé gzip: 0.13 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/client.astro_astro_type_script_index_0_lang.J0sN1ceS.js              [39m[1m[2m0.11 kB[22m[1m[22m[2m Γöé gzip: 0.13 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/ReportesView.astro_astro_type_script_index_0_lang.TKqkmY_R.js        [39m[1m[2m0.46 kB[22m[1m[22m[2m Γöé gzip: 0.24 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/index.astro_astro_type_script_index_0_lang.DV3EojxF.js               [39m[1m[2m0.46 kB[22m[1m[22m[2m Γöé gzip: 0.32 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/NuevoReclamoView.astro_astro_type_script_index_0_lang.DrhTvtLJ.js    [39m[1m[2m0.53 kB[22m[1m[22m[2m Γöé gzip: 0.36 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/Navbar.astro_astro_type_script_index_0_lang.xXk8HSz8.js              [39m[1m[2m0.62 kB[22m[1m[22m[2m Γöé gzip: 0.34 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/ReclamosView.astro_astro_type_script_index_0_lang.BwVYGngl.js        [39m[1m[2m0.96 kB[22m[1m[22m[2m Γöé gzip: 0.53 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/MisReclamosView.astro_astro_type_script_index_0_lang.B27z1rua.js     [39m[1m[2m0.98 kB[22m[1m[22m[2m Γöé gzip: 0.55 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/MisSolicitudesView.astro_astro_type_script_index_0_lang.A5f3gksD.js  [39m[1m[2m1.31 kB[22m[1m[22m[2m Γöé gzip: 0.67 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/UsuariosView.astro_astro_type_script_index_0_lang.rDdvGEp_.js        [39m[1m[2m1.34 kB[22m[1m[22m[2m Γöé gzip: 0.69 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/DespachosView.astro_astro_type_script_index_0_lang.lSNC6Zn4.js       [39m[1m[2m1.43 kB[22m[1m[22m[2m Γöé gzip: 0.72 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/SolicitudesView.astro_astro_type_script_index_0_lang.DuurjR7b.js     [39m[1m[2m1.62 kB[22m[1m[22m[2m Γöé gzip: 0.76 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/NuevaSolicitudView.astro_astro_type_script_index_0_lang.xoJ0kVGy.js  [39m[1m[2m3.34 kB[22m[1m[22m[2m Γöé gzip: 1.31 kB[22m
+[2m15:59:07[22m [34m[vite][39m [2mdist/[22m[36m_astro/appStore.DXJwBiOO.js                                                 [39m[1m[2m3.34 kB[22m[1m[22m[2m Γöé gzip: 1.42 kB[22m
+[2m15:59:07[22m [34m[vite][39m [32mΓ£ô built in 165ms[39m
+
+[42m[30m generating static routes [39m[49m
+[2m15:59:07[22m [32mΓû╢[39m src/pages/admin.astro
+[2m15:59:07[22m   [34mΓööΓöÇ[39m [2m/admin/index.html[22m [2m(+13ms)[22m 
+[2m15:59:07[22m [32mΓû╢[39m src/pages/client.astro
+[2m15:59:07[22m   [34mΓööΓöÇ[39m [2m/client/index.html[22m [2m(+4ms)[22m 
+[2m15:59:07[22m [32mΓû╢[39m src/pages/index.astro
+[2m15:59:07[22m   [34mΓööΓöÇ[39m [2m/index.html[22m [2m(+3ms)[22m 
+[2m15:59:07[22m [32mΓ£ô Completed in 50ms.
+[39m
+[2m15:59:07[22m [34m[build][39m 3 page(s) built in [1m1.58s[22m
+[2m15:59:07[22m [34m[build][39m [1mComplete![22m

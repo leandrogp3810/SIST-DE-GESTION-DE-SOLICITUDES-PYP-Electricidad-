@@ -1,0 +1,214 @@
+<div id="nuevaSolicitudView" class="view active">
+	<h2>Registro de Solicitud</h2>
+	<div class="card">
+		<form id="nuevaSolicitudForm">
+			<div class="form-row">
+				<div class="form-group">
+					<label for="clientName">Nombre del Cliente*</label>
+					<input type="text" id="clientName" required />
+				</div>
+				<div class="form-group">
+					<label for="clientPhone">Teléfono*</label>
+					<input type="tel" id="clientPhone" required />
+				</div>
+				<div class="form-group">
+					<label for="clientEmail">Correo Electrónico*</label>
+					<input type="email" id="clientEmail" required />
+				</div>
+			</div>
+
+			<h3>Productos</h3>
+			<div id="productosContainer">
+				<div class="producto-item">
+					<div class="form-row">
+						<div class="form-group" style="flex: 2;">
+							<label>Producto</label>
+							<select class="producto-select" required>
+								<option value="">Seleccione un producto...</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label>Cantidad</label>
+							<input type="number" class="cantidad-input" min="1" required />
+						</div>
+						<div class="form-group">
+							<label>Stock Disponible</label>
+							<input type="text" class="stock-display" readonly />
+						</div>
+					</div>
+					<div class="stock-warning" style="display: none;"></div>
+				</div>
+			</div>
+
+			<button type="button" id="addProductBtn" class="btn btn-secondary">+ Agregar Producto</button>
+
+			<div style="margin-top: 2rem;">
+				<button type="button" id="verificarStockBtn" class="btn btn-primary">Verificar Stock</button>
+				<button type="submit" id="confirmarSolicitudBtn" class="btn btn-success" disabled>Confirmar Solicitud</button>
+			</div>
+
+			<div id="solicitudMessage" class="message-box"></div>
+		</form>
+	</div>
+</div>
+
+<script>
+	import { $currentUser, createSolicitud } from '../../stores/appStore';
+	import { PRODUCTS } from '../../stores/products';
+
+	const productosContainer = document.getElementById('productosContainer') as HTMLDivElement;
+	const addProductBtn = document.getElementById('addProductBtn') as HTMLButtonElement;
+	const verificarStockBtn = document.getElementById('verificarStockBtn') as HTMLButtonElement;
+	const confirmarSolicitudBtn = document.getElementById('confirmarSolicitudBtn') as HTMLButtonElement;
+	const solicitudMessage = document.getElementById('solicitudMessage') as HTMLDivElement;
+	const nuevaSolicitudForm = document.getElementById('nuevaSolicitudForm') as HTMLFormElement;
+
+	// Populate product selects
+	function populateProductSelect(select: HTMLSelectElement) {
+		select.innerHTML = '<option value="">Seleccione un producto...</option>';
+		PRODUCTS.forEach(product => {
+			const option = document.createElement('option');
+			option.value = product.id.toString();
+			option.textContent = product.name;
+			option.dataset.stock = product.stock.toString();
+			select.appendChild(option);
+		});
+	}
+
+	// Initialize first select
+	const firstSelect = productosContainer.querySelector('.producto-select') as HTMLSelectElement;
+	populateProductSelect(firstSelect);
+
+	// Handle product selection
+	productosContainer.addEventListener('change', (e) => {
+		const target = e.target as HTMLSelectElement;
+		if (target.classList.contains('producto-select')) {
+			const productoItem = target.closest('.producto-item') as HTMLDivElement;
+			const stockDisplay = productoItem.querySelector('.stock-display') as HTMLInputElement;
+			const selectedOption = target.options[target.selectedIndex];
+			
+			if (selectedOption.value) {
+				stockDisplay.value = selectedOption.dataset.stock || '0';
+			} else {
+				stockDisplay.value = '';
+			}
+		}
+	});
+
+	// Add product
+	addProductBtn.addEventListener('click', () => {
+		const newItem = document.createElement('div');
+		newItem.className = 'producto-item';
+		newItem.innerHTML = `
+			<div class="form-row">
+				<div class="form-group" style="flex: 2;">
+					<label>Producto</label>
+					<select class="producto-select" required>
+						<option value="">Seleccione un producto...</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Cantidad</label>
+					<input type="number" class="cantidad-input" min="1" required />
+				</div>
+				<div class="form-group">
+					<label>Stock Disponible</label>
+					<input type="text" class="stock-display" readonly />
+				</div>
+			</div>
+			<div class="stock-warning" style="display: none;"></div>
+		`;
+		
+		productosContainer.appendChild(newItem);
+		const select = newItem.querySelector('.producto-select') as HTMLSelectElement;
+		populateProductSelect(select);
+	});
+
+	// Verify stock
+	verificarStockBtn.addEventListener('click', () => {
+		let allValid = true;
+		const productoItems = productosContainer.querySelectorAll('.producto-item');
+
+		productoItems.forEach(item => {
+			const select = item.querySelector('.producto-select') as HTMLSelectElement;
+			const cantidadInput = item.querySelector('.cantidad-input') as HTMLInputElement;
+			const warning = item.querySelector('.stock-warning') as HTMLDivElement;
+
+			if (!select.value || !cantidadInput.value) {
+				allValid = false;
+				return;
+			}
+
+			const selectedOption = select.options[select.selectedIndex];
+			const stock = parseInt(selectedOption.dataset.stock || '0');
+			const cantidad = parseInt(cantidadInput.value);
+
+			if (cantidad > stock) {
+				warning.textContent = `Stock insuficiente. Disponible: ${stock}`;
+				warning.style.display = 'flex';
+				allValid = false;
+			} else {
+				warning.style.display = 'none';
+			}
+		});
+
+		if (allValid) {
+			confirmarSolicitudBtn.disabled = false;
+			solicitudMessage.textContent = 'Stock verificado. Puede confirmar la solicitud.';
+			solicitudMessage.className = 'message-box success show';
+		} else {
+			confirmarSolicitudBtn.disabled = true;
+			solicitudMessage.textContent = 'Por favor, corrija los errores antes de continuar.';
+			solicitudMessage.className = 'message-box error show';
+		}
+	});
+
+	// Submit form
+	nuevaSolicitudForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+
+		const currentUser = $currentUser.get();
+		if (!currentUser) {
+			window.location.href = '/';
+			return;
+		}
+
+		const formData = new FormData(nuevaSolicitudForm);
+		const productos: Array<{ productId: number; productName: string; cantidad: number }> = [];
+
+		const productoItems = productosContainer.querySelectorAll('.producto-item');
+		productoItems.forEach(item => {
+			const select = item.querySelector('.producto-select') as HTMLSelectElement;
+			const cantidadInput = item.querySelector('.cantidad-input') as HTMLInputElement;
+
+			if (select.value && cantidadInput.value) {
+				const selectedOption = select.options[select.selectedIndex];
+				productos.push({
+					productId: parseInt(select.value),
+					productName: selectedOption.textContent || '',
+					cantidad: parseInt(cantidadInput.value)
+				});
+			}
+		});
+
+		const solicitudData = {
+			username: currentUser.username,
+			clientName: (document.getElementById('clientName') as HTMLInputElement).value,
+			clientPhone: (document.getElementById('clientPhone') as HTMLInputElement).value,
+			clientEmail: (document.getElementById('clientEmail') as HTMLInputElement).value,
+			productos
+		};
+
+		createSolicitud(solicitudData);
+
+		solicitudMessage.textContent = 'Solicitud creada exitosamente';
+		solicitudMessage.className = 'message-box success show';
+
+		nuevaSolicitudForm.reset();
+		confirmarSolicitudBtn.disabled = true;
+
+		setTimeout(() => {
+			solicitudMessage.classList.remove('show');
+		}, 3000);
+	});
+</script>
