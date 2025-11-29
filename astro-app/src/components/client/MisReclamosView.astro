@@ -3,6 +3,39 @@
 	<div id="misReclamosList"></div>
 </div>
 
+<style>
+	.admin-response {
+		margin-top: 1.5rem;
+		padding: 1rem;
+		border-radius: 0.5rem;
+		border-left: 4px solid #ccc;
+		background-color: #f9fafb;
+	}
+
+	.admin-response.accepted {
+		border-left-color: var(--success-color);
+		background-color: #ecfdf5;
+	}
+
+	.admin-response.rejected {
+		border-left-color: var(--danger-color);
+		background-color: #fef2f2;
+	}
+
+	.admin-response h4 {
+		margin-top: 0;
+		margin-bottom: 0.5rem;
+		color: var(--gray-700);
+		font-size: 1rem;
+	}
+
+	.resolution-badge {
+		margin-top: 1rem;
+		font-weight: bold;
+		font-size: 0.9rem;
+	}
+</style>
+
 <script>
 	import { $currentUser, $reclamos, getReclamosByUser } from '../../stores/appStore';
 
@@ -41,6 +74,15 @@
 					<p><strong>Fecha:</strong> ${reclamo.fecha}</p>
 					<p><strong>Descripción:</strong></p>
 					<p>${reclamo.descripcion}</p>
+					${reclamo.response ? `
+						<div class="admin-response ${reclamo.resolution === 'accepted' ? 'accepted' : 'rejected'}">
+							<h4>Respuesta del Administrador:</h4>
+							<p>${reclamo.response}</p>
+							<div class="resolution-badge">
+								${reclamo.resolution === 'accepted' ? '✅ Reclamo Aceptado' : '❌ Reclamo Rechazado'}
+							</div>
+						</div>
+					` : ''}
 				</div>
 			</div>
 		`).join('');
