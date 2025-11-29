@@ -57,3 +57,50 @@ https://pypelectricidad.netlify.app/
 
 ## 📦 **Estructura del Proyecto**
 
+src/
+├── components/
+│ ├── admin/
+│ ├── client/
+│ └── shared/
+├── layouts/
+│ └── Layout.astro
+├── pages/
+│ ├── index.astro
+│ ├── register.astro
+│ ├── admin.astro
+│ └── client.astro
+├── stores/
+│ ├── appStore.ts
+│ └── products.ts
+└── styles/
+└── global.css
+
+
+---
+
+## 🔧 **Instalación y Ejecución Local**
+
+
+
+1 Instalar dependencias
+npm install
+
+2 Ejecutar en modo desarrollo
+npm run dev
+
+
+La aplicación correrá en:
+
+👉 http://localhost:4321
+
+📦 Persistencia de Datos
+
+El sistema utiliza localStorage mediante Nanostores para simular una base de datos local.
+
+Usuario administrador por defecto:
+
+Usuario: admin
+Contraseña: admin123
+
+
+Para testear como usuario nuevo, usar modo incógnito o limpiar localStorage.
