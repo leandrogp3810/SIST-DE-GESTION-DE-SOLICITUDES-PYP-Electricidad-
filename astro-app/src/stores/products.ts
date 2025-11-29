@@ -1,3 +1,5 @@
+import { persistentAtom } from '@nanostores/persistent';
+
 export interface Product {
     id: number;
     name: string;
@@ -6,7 +8,7 @@ export interface Product {
     images: string[];
 }
 
-export const PRODUCTS: Product[] = [
+const INITIAL_PRODUCTS: Product[] = [
     {
         id: 1,
         name: 'Cable eléctrico x 20mt',
@@ -43,3 +45,25 @@ export const PRODUCTS: Product[] = [
         images: ['/images/cinta-1.png', '/images/cinta-2.png']
     }
 ];
+
+export const $products = persistentAtom<Product[]>('products', INITIAL_PRODUCTS, {
+    encode: JSON.stringify,
+    decode: JSON.parse
+});
+
+export function addProduct(product: Omit<Product, 'id'>) {
+    const products = $products.get();
+    const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    const newProduct = { ...product, id: newId };
+    $products.set([...products, newProduct]);
+}
+
+export function deleteProduct(id: number) {
+    const products = $products.get();
+    $products.set(products.filter(p => p.id !== id));
+}
+
+export function updateProduct(product: Product) {
+    const products = $products.get();
+    $products.set(products.map(p => p.id === product.id ? product : p));
+}

@@ -372,10 +372,17 @@
 
 <script>
 	import { $currentUser, createSolicitud } from '../../stores/appStore';
-	import { PRODUCTS } from '../../stores/products';
+	import { $products, type Product } from '../../stores/products';
 
 	// State
-	let cart: Array<{ product: typeof PRODUCTS[0], quantity: number }> = [];
+	let products: Product[] = [];
+	let cart: Array<{ product: Product, quantity: number }> = [];
+
+	// Subscribe to products
+	$products.subscribe(p => {
+		products = p;
+		renderCatalog();
+	});
 
 	// DOM Elements
 	const catalogGrid = document.getElementById('catalogGrid');
@@ -393,10 +400,26 @@
 	const backToStep1Btn = document.getElementById('backToStep1Btn');
 
 	// Render Catalog
+	// Initial Render handled by subscription
+	
+	// Re-render when view becomes active
+	window.addEventListener('viewChange', (e: Event) => {
+		const customEvent = e as CustomEvent;
+		if (customEvent.detail.viewId === 'nuevaSolicitud') {
+			renderCatalog();
+		}
+	});
+
 	function renderCatalog() {
-		if (!catalogGrid) return;
+		const grid = document.getElementById('catalogGrid');
+		if (!grid) return;
 		
-		catalogGrid.innerHTML = PRODUCTS.map(product => `
+		if (products.length === 0) {
+			grid.innerHTML = '<p>No hay productos disponibles en este momento.</p>';
+			return;
+		}
+		
+		grid.innerHTML = products.map(product => `
 			<div class="product-card">
 				<div class="carousel" id="carousel-${product.id}">
 					<div class="carousel-inner">
@@ -426,7 +449,7 @@
 		`).join('');
 
 		// Add event listeners
-		catalogGrid.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+		grid.querySelectorAll('.add-to-cart-btn').forEach(btn => {
 			btn.addEventListener('click', (e) => {
 				const target = e.target as HTMLButtonElement;
 				const id = parseInt(target.dataset.id || '0');
@@ -438,7 +461,7 @@
 		});
 
 		// Carousel listeners
-		catalogGrid.querySelectorAll('.carousel-control').forEach(btn => {
+		grid.querySelectorAll('.carousel-control').forEach(btn => {
 			btn.addEventListener('click', (e) => {
 				const target = e.target as HTMLButtonElement;
 				const id = target.dataset.id;
@@ -480,7 +503,7 @@
 
 	// Cart Logic
 	function addToCart(productId: number, quantity: number) {
-		const product = PRODUCTS.find(p => p.id === productId);
+		const product = products.find(p => p.id === productId);
 		if (!product) return;
 
 		if (quantity > product.stock) {
@@ -718,5 +741,5 @@
 	});
 
 	// Initial Render
-	renderCatalog();
+	// Initial Render handled by subscription
 </script>
