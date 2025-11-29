@@ -19,28 +19,55 @@
 			<span class="close-modal">&times;</span>
 		</div>
 		<div class="modal-body">
-			<div id="cartSummary" class="cart-summary"></div>
-			
 			<form id="checkoutForm">
-				<h3>Datos del Cliente</h3>
-				<div class="form-row">
-					<div class="form-group">
-						<label for="clientName">Nombre del Cliente*</label>
-						<input type="text" id="clientName" required />
+				<!-- Step 1: Basic Info & Cart -->
+				<div id="checkoutStep1">
+					<div id="cartSummary" class="cart-summary"></div>
+					
+					<h3>Datos del Cliente</h3>
+					<div class="form-row">
+						<div class="form-group">
+							<label for="clientName">Nombre del Cliente*</label>
+							<input type="text" id="clientName" name="clientName" required />
+						</div>
+						<div class="form-group">
+							<label for="clientPhone">Teléfono*</label>
+							<input type="tel" id="clientPhone" name="clientPhone" required />
+						</div>
 					</div>
 					<div class="form-group">
-						<label for="clientPhone">Teléfono*</label>
-						<input type="tel" id="clientPhone" required />
+						<label for="clientEmail">Correo Electrónico*</label>
+						<input type="email" id="clientEmail" name="clientEmail" required />
 					</div>
-				</div>
-				<div class="form-group">
-					<label for="clientEmail">Correo Electrónico*</label>
-					<input type="email" id="clientEmail" required />
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
+						<button type="button" id="goToStep2Btn" class="btn btn-primary">Continuar a Facturación</button>
+					</div>
 				</div>
 
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
-					<button type="submit" class="btn btn-success">Confirmar Pedido</button>
+				<!-- Step 2: Billing Address -->
+				<div id="checkoutStep2" style="display: none;">
+					<h3>Dirección de Facturación</h3>
+					<div class="form-group">
+						<label for="billingAddress">Dirección*</label>
+						<input type="text" id="billingAddress" name="billingAddress" required />
+					</div>
+					<div class="form-row">
+						<div class="form-group">
+							<label for="billingCity">Ciudad*</label>
+							<input type="text" id="billingCity" name="billingCity" required />
+						</div>
+						<div class="form-group">
+							<label for="billingZip">Código Postal*</label>
+							<input type="text" id="billingZip" name="billingZip" required />
+						</div>
+					</div>
+
+					<div class="modal-footer">
+						<button type="button" id="backToStep1Btn" class="btn btn-secondary">Volver</button>
+						<button type="submit" class="btn btn-success">Confirmar Pedido</button>
+					</div>
 				</div>
 			</form>
 		</div>
@@ -358,6 +385,12 @@
 	const cartSummary = document.getElementById('cartSummary');
 	const checkoutForm = document.getElementById('checkoutForm') as HTMLFormElement;
 	const closeModalBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
+	
+	// Steps Elements
+	const checkoutStep1 = document.getElementById('checkoutStep1');
+	const checkoutStep2 = document.getElementById('checkoutStep2');
+	const goToStep2Btn = document.getElementById('goToStep2Btn');
+	const backToStep1Btn = document.getElementById('backToStep1Btn');
 
 	// Render Catalog
 	function renderCatalog() {
@@ -489,9 +522,22 @@
 		if (!cartSummary) return;
 
 		if (cart.length === 0) {
-			cartSummary.innerHTML = '<p>El carrito está vacío</p>';
+			cartSummary.innerHTML = `
+				<div class="empty-cart-state">
+					<div style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
+					<p style="font-weight: 600; color: var(--gray-800);">Tu carrito está vacío</p>
+					<p style="color: var(--gray-500); font-size: 0.9rem;">¡Agrega productos del catálogo para comenzar!</p>
+				</div>
+			`;
+			// Disable submit button if needed, but form validation handles required fields
+			const submitBtn = checkoutForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+			if (submitBtn) submitBtn.disabled = true;
 			return;
 		}
+
+		// Enable submit button
+		const submitBtn = checkoutForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+		if (submitBtn) submitBtn.disabled = false;
 
 		const total = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
 
@@ -566,18 +612,55 @@
 	function removeFromCart(productId: number) {
 		cart = cart.filter(item => item.product.id !== productId);
 		updateCartUI();
+		// Don't close modal on empty, just re-render
 		if (cart.length === 0) {
-			checkoutModal?.classList.remove('show');
+			renderCartSummary();
 		}
 	}
 
-	// Modal Logic
-	cartBtn?.addEventListener('click', () => {
-		if (cart.length === 0) {
-			showToast('El carrito está vacío', 'error');
+	// Step Navigation
+	goToStep2Btn?.addEventListener('click', () => {
+		// Validate Step 1
+		const name = (document.getElementById('clientName') as HTMLInputElement).value;
+		const phone = (document.getElementById('clientPhone') as HTMLInputElement).value;
+		const email = (document.getElementById('clientEmail') as HTMLInputElement).value;
+
+		if (!name || !phone || !email) {
+			showToast('Por favor complete los datos del cliente', 'error');
 			return;
 		}
+
+		checkoutStep1!.style.display = 'none';
+		checkoutStep2!.style.display = 'block';
+	});
+
+	backToStep1Btn?.addEventListener('click', () => {
+		checkoutStep2!.style.display = 'none';
+		checkoutStep1!.style.display = 'block';
+	});
+
+	// Modal Logic
+	function prefillClientData() {
+		const currentUser = $currentUser.get();
+		if (currentUser) {
+			const nameInput = document.getElementById('clientName') as HTMLInputElement;
+			const phoneInput = document.getElementById('clientPhone') as HTMLInputElement;
+			const emailInput = document.getElementById('clientEmail') as HTMLInputElement;
+
+			if (nameInput && !nameInput.value) nameInput.value = currentUser.name || '';
+			if (phoneInput && !phoneInput.value) phoneInput.value = currentUser.phone || '';
+			if (emailInput && !emailInput.value) emailInput.value = currentUser.email || '';
+		}
+	}
+
+	cartBtn?.addEventListener('click', () => {
 		renderCartSummary();
+		prefillClientData();
+		// Reset steps
+		if (checkoutStep1 && checkoutStep2) {
+			checkoutStep1.style.display = 'block';
+			checkoutStep2.style.display = 'none';
+		}
 		checkoutModal?.classList.add('show');
 	});
 
@@ -591,6 +674,10 @@
 	checkoutForm.addEventListener('submit', (e) => {
 		e.preventDefault();
 
+		const submitBtn = checkoutForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+		if (submitBtn.disabled) return;
+		submitBtn.disabled = true;
+
 		const currentUser = $currentUser.get();
 		if (!currentUser) {
 			window.location.href = '/';
@@ -601,9 +688,14 @@
 		
 		const solicitudData = {
 			username: currentUser.username,
-			clientName: formData.get('clientName') as string || (document.getElementById('clientName') as HTMLInputElement).value,
-			clientPhone: formData.get('clientPhone') as string || (document.getElementById('clientPhone') as HTMLInputElement).value,
-			clientEmail: formData.get('clientEmail') as string || (document.getElementById('clientEmail') as HTMLInputElement).value,
+			clientName: formData.get('clientName') as string,
+			clientPhone: formData.get('clientPhone') as string,
+			clientEmail: formData.get('clientEmail') as string,
+			billingAddress: {
+				address: formData.get('billingAddress') as string,
+				city: formData.get('billingCity') as string,
+				zip: formData.get('billingZip') as string
+			},
 			productos: cart.map(item => ({
 				productId: item.product.id,
 				productName: item.product.name,
@@ -618,6 +710,11 @@
 		updateCartUI();
 		checkoutForm.reset();
 		checkoutModal?.classList.remove('show');
+		
+		// Re-enable button
+		setTimeout(() => {
+			submitBtn.disabled = false;
+		}, 500);
 	});
 
 	// Initial Render

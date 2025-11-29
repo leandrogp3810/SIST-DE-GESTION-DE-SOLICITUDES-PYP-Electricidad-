@@ -24,6 +24,11 @@ export interface Solicitud {
     }>;
     status: 'pending' | 'approved' | 'rejected' | 'distribution';
     fecha: string;
+    billingAddress?: {
+        address: string;
+        city: string;
+        zip: string;
+    };
 }
 
 export interface Reclamo {
