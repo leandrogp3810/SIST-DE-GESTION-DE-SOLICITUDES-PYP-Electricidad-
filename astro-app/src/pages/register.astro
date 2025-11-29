@@ -1,0 +1,153 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="P&P Electricidad - Crear Cuenta">
+	<div class="login-container">
+		<div class="login-card">
+			<div class="login-form-side">
+				<div class="logo-container">
+					<img src="/logo.png" alt="P&P Electricidad" class="logo" />
+				</div>
+
+				<div id="registerSection">
+					<h1>Crear Cuenta</h1>
+					<form id="registerForm">
+						<div class="form-group">
+							<label for="regUsername">Usuario</label>
+							<input type="text" id="regUsername" name="username" required />
+						</div>
+						<div class="form-group">
+							<label for="regPassword">Contraseña</label>
+							<input type="password" id="regPassword" name="password" required />
+						</div>
+						<div class="form-group">
+							<label for="regName">Nombre Completo</label>
+							<input type="text" id="regName" name="name" required />
+						</div>
+						<div class="form-group">
+							<label for="regEmail">Email</label>
+							<input type="email" id="regEmail" name="email" required />
+						</div>
+						<div class="form-group">
+							<label for="regPhone">Teléfono</label>
+							<input type="tel" id="regPhone" name="phone" required />
+						</div>
+						<button type="submit" class="btn btn-primary" style="width: 100%;">Registrarse</button>
+						<div id="registerError" class="error-message"></div>
+						<div id="registerSuccess" class="success-message"></div>
+						<p class="auth-switch">
+							¿Ya tienes cuenta? <a href="/" id="showLogin">Inicia sesión</a>
+						</p>
+					</form>
+				</div>
+			</div>
+			</div>
+			<!-- Image removed -->
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.login-container {
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		/* background-color removed to show global background */
+	}
+
+	.login-card {
+		background: white;
+		border-radius: 1rem;
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+		width: 100%;
+		max-width: 450px; /* Reduced max-width */
+		overflow: hidden;
+	}
+
+	.login-form-side {
+		padding: 2.5rem;
+	}
+
+	.logo-container {
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+
+	.logo {
+		height: 150px;
+		width: auto;
+		mix-blend-mode: multiply;
+	}
+
+	h1 {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--gray-900);
+		margin-bottom: 1.5rem;
+		text-align: center;
+	}
+
+	.auth-switch {
+		margin-top: 1.5rem;
+		text-align: center;
+		font-size: 0.9rem;
+		color: var(--gray-600);
+	}
+
+	.auth-switch a {
+		color: var(--primary-color);
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	.auth-switch a:hover {
+		text-decoration: underline;
+	}
+</style>
+
+<script>
+	import { login, createUser } from '../stores/appStore';
+
+	const registerForm = document.getElementById('registerForm') as HTMLFormElement;
+	const registerError = document.getElementById('registerError') as HTMLDivElement;
+	const registerSuccess = document.getElementById('registerSuccess') as HTMLDivElement;
+
+	// Register logic
+	registerForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+
+		const formData = new FormData(registerForm);
+		const userData = {
+			username: formData.get('username') as string,
+			password: formData.get('password') as string,
+			name: formData.get('name') as string,
+			email: formData.get('email') as string,
+			phone: formData.get('phone') as string
+		};
+
+		const result = createUser(userData);
+
+		if (result.success) {
+			registerSuccess.textContent = 'Cuenta creada exitosamente. Iniciando sesión...';
+			registerSuccess.classList.add('show');
+			registerError.classList.remove('show');
+
+			// Auto login
+			setTimeout(() => {
+				login(userData.username, userData.password);
+				window.location.href = '/client';
+			}, 1500);
+		} else {
+			registerError.textContent = result.message;
+			registerError.classList.add('show');
+			registerSuccess.classList.remove('show');
+			
+			setTimeout(() => {
+				registerError.classList.remove('show');
+			}, 3000);
+		}
+	});
+</script>

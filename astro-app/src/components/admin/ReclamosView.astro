@@ -3,8 +3,82 @@
 	<div id="reclamosList"></div>
 </div>
 
+<style is:global>
+	.reclamo-images {
+		margin-top: 1rem;
+	}
+	.file-list {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+		margin-top: 0.5rem;
+	}
+	.file-btn {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 16px;
+		background-color: #f8f9fa;
+		border: 1px solid #dee2e6;
+		border-radius: 6px;
+		cursor: pointer;
+		font-size: 0.9rem;
+		color: #495057;
+		transition: all 0.2s;
+	}
+	.file-btn:hover {
+		background-color: #e9ecef;
+		border-color: #ced4da;
+		transform: translateY(-1px);
+	}
+	
+	.reclamo-actions {
+		margin-top: 2rem;
+		padding: 1.5rem;
+		background-color: #f8f9fa;
+		border-radius: 8px;
+		border: 1px solid #e9ecef;
+	}
+	.reclamo-actions h4 {
+		margin-top: 0;
+		margin-bottom: 1rem;
+		color: #495057;
+	}
+	.response-text {
+		width: 100%;
+		min-height: 100px;
+		margin-bottom: 1.5rem;
+		padding: 1rem;
+		border: 1px solid #ced4da;
+		border-radius: 6px;
+		font-family: inherit;
+		font-size: 0.95rem;
+		resize: vertical;
+		transition: border-color 0.2s, box-shadow 0.2s;
+	}
+	.response-text:focus {
+		outline: none;
+		border-color: var(--primary-color, #0d6efd);
+		box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+	}
+	.btn-group {
+		display: flex;
+		gap: 1rem;
+		justify-content: flex-end;
+	}
+	.reclamo-resolution {
+		margin-top: 1.5rem;
+		padding: 1.5rem;
+		background-color: #f8f9fa;
+		border-radius: 8px;
+		border-left: 4px solid #dee2e6;
+	}
+	.text-success { color: #198754; font-weight: 600; }
+	.text-danger { color: #dc3545; font-weight: 600; }
+</style>
+
 <script>
-	import { $reclamos } from '../../stores/appStore';
+	import { $reclamos, resolveReclamo } from '../../stores/appStore';
 
 	function renderReclamos() {
 		const reclamos = $reclamos.get();
@@ -32,13 +106,78 @@
 				</div>
 				<div class="solicitud-info">
 					<p><strong>Usuario:</strong> ${reclamo.username}</p>
-					<p><strong>Número de Pedido:</strong> ${reclamo.numPedido}</p>
+					<p><strong>Número de Pedido:</strong> ${reclamo.numPedido || 'N/A'}</p>
 					<p><strong>Fecha:</strong> ${reclamo.fecha}</p>
 					<p><strong>Descripción:</strong></p>
 					<p>${reclamo.descripcion}</p>
+
+					${reclamo.images && reclamo.images.length > 0 ? `
+						<div class="reclamo-images">
+							<p><strong>Archivos adjuntos:</strong></p>
+							<div class="file-list">
+								${reclamo.images.map((img, index) => `
+									<button class="file-btn" data-image="${img}">
+										📄 Ver Archivo ${index + 1}
+									</button>
+								`).join('')}
+							</div>
+						</div>
+					` : ''}
+
+					${reclamo.status === 'open' ? `
+						<div class="reclamo-actions">
+							<h4>Responder Reclamo</h4>
+							<textarea class="response-text" placeholder="Escribe una respuesta detallada para el cliente..." rows="3"></textarea>
+							<div class="btn-group">
+								<button class="btn btn-success resolve-btn" data-id="${reclamo.id}" data-resolution="accepted">Aceptar Reclamo</button>
+								<button class="btn btn-danger resolve-btn" data-id="${reclamo.id}" data-resolution="rejected">Rechazar Reclamo</button>
+							</div>
+						</div>
+					` : `
+						<div class="reclamo-resolution">
+							<p><strong>Resolución:</strong> <span class="${reclamo.resolution === 'accepted' ? 'text-success' : 'text-danger'}">${reclamo.resolution === 'accepted' ? 'Aceptado' : 'Rechazado'}</span></p>
+							<p><strong>Respuesta:</strong> ${reclamo.response || '-'}</p>
+						</div>
+					`}
 				</div>
 			</div>
 		`).join('');
+
+		// Add listeners for file buttons
+		container.querySelectorAll('.file-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const target = e.currentTarget as HTMLButtonElement;
+				const img = target.dataset.image;
+				if (img) {
+					const win = window.open();
+					if (win) {
+						win.document.write('<img src="' + img + '" style="max-width:100%; height:auto;">');
+						win.document.close();
+					}
+				}
+			});
+		});
+
+		// Add listeners for resolve buttons
+		container.querySelectorAll('.resolve-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const target = e.target as HTMLButtonElement;
+				const id = target.dataset.id;
+				const resolution = target.dataset.resolution as 'accepted' | 'rejected';
+				const card = target.closest('.card');
+				const textarea = card?.querySelector('.response-text') as HTMLTextAreaElement;
+				const response = textarea?.value;
+
+				if (!response) {
+					alert('Por favor escribe una respuesta');
+					return;
+				}
+
+				if (id) {
+					resolveReclamo(id, resolution, response);
+				}
+			});
+		});
 	}
 
 	// Initial render

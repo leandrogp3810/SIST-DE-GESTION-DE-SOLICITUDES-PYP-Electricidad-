@@ -4,7 +4,7 @@
 </div>
 
 <script>
-	import { $solicitudes, updateSolicitudStatus } from '../../stores/appStore';
+	import { $solicitudes, updateSolicitudStatus, deleteSolicitud } from '../../stores/appStore';
 
 	function renderSolicitudes() {
 		const solicitudes = $solicitudes.get();
@@ -48,6 +48,9 @@
 					<button class="btn btn-danger" data-action="reject" data-id="${solicitud.id}">
 						Rechazar
 					</button>
+					<button class="btn btn-danger" data-action="delete" data-id="${solicitud.id}" style="margin-left: 10px; background-color: #dc3545;">
+						Eliminar
+					</button>
 				</div>
 			</div>
 		`).join('');
@@ -67,6 +70,10 @@
 				} else if (action === 'reject') {
 					updateSolicitudStatus(id, 'rejected');
 					alert('Solicitud rechazada');
+				} else if (action === 'delete') {
+					if (confirm('¿Estás seguro de eliminar esta solicitud?')) {
+						deleteSolicitud(id);
+					}
 				}
 
 				renderSolicitudes();

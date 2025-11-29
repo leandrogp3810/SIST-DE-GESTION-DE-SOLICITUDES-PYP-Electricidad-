@@ -40,6 +40,8 @@ export interface Reclamo {
     fecha: string;
     status: 'open' | 'closed';
     images?: string[];
+    response?: string;
+    resolution?: 'accepted' | 'rejected';
 }
 
 // Persistent stores
@@ -109,6 +111,16 @@ export function deleteUser(username: string) {
     const users = $users.get();
     const filtered = users.filter(u => u.username !== username);
     $users.set(filtered);
+
+    // Delete user's solicitudes
+    const solicitudes = $solicitudes.get();
+    const filteredSolicitudes = solicitudes.filter(s => s.username !== username);
+    $solicitudes.set(filteredSolicitudes);
+
+    // Delete user's reclamos
+    const reclamos = $reclamos.get();
+    const filteredReclamos = reclamos.filter(r => r.username !== username);
+    $reclamos.set(filteredReclamos);
 }
 
 export function createSolicitud(solicitudData: Omit<Solicitud, 'id' | 'status' | 'fecha'>): string {
@@ -132,6 +144,12 @@ export function updateSolicitudStatus(id: string, status: Solicitud['status']) {
     $solicitudes.set(updated);
 }
 
+export function deleteSolicitud(id: string) {
+    const solicitudes = $solicitudes.get();
+    const filtered = solicitudes.filter(s => s.id !== id);
+    $solicitudes.set(filtered);
+}
+
 export function createReclamo(reclamoData: Omit<Reclamo, 'id' | 'status' | 'fecha'>): string {
     const reclamos = $reclamos.get();
     const newReclamo: Reclamo = {
@@ -143,6 +161,22 @@ export function createReclamo(reclamoData: Omit<Reclamo, 'id' | 'status' | 'fech
 
     $reclamos.set([...reclamos, newReclamo]);
     return newReclamo.id;
+}
+
+export function resolveReclamo(id: string, resolution: 'accepted' | 'rejected', response: string) {
+    const reclamos = $reclamos.get();
+    const reclamo = reclamos.find(r => r.id === id);
+    if (!reclamo) return;
+
+    const updatedReclamos = reclamos.map(r =>
+        r.id === id ? { ...r, status: 'closed' as const, resolution, response } : r
+    );
+    $reclamos.set(updatedReclamos);
+
+    if (resolution === 'accepted' && reclamo.orderId) {
+        // If claim is accepted, we assume the order is cancelled/refunded
+        updateSolicitudStatus(reclamo.orderId, 'rejected');
+    }
 }
 
 export function getSolicitudesByUser(username: string): Solicitud[] {
