@@ -3,26 +3,65 @@
 	<div class="card">
 		<form id="nuevoReclamoForm">
 			<div class="form-group">
-				<label for="reclamoNumPedido">Número de pedido</label>
-				<input type="text" id="reclamoNumPedido" required />
+				<label for="reclamoOrderId">Seleccionar Pedido</label>
+				<select id="reclamoOrderId" name="reclamoOrderId" required>
+					<option value="">Cargando pedidos...</option>
+				</select>
 			</div>
 			<div class="form-group">
-				<label for="reclamoDescripcion">Descripción</label>
-				<textarea id="reclamoDescripcion" rows="5" required></textarea>
+				<label for="reclamoDescripcion">Descripción del Problema</label>
+				<textarea id="reclamoDescripcion" name="reclamoDescripcion" rows="5" required></textarea>
 			</div>
-			<button type="submit" class="btn btn-primary">Enviar</button>
+			<div class="form-group">
+				<label for="reclamoImages">Adjuntar Imágenes</label>
+				<input type="file" id="reclamoImages" name="reclamoImages" multiple accept="image/*" />
+				<small class="text-muted">Puedes seleccionar varias imágenes</small>
+			</div>
+			<button type="submit" class="btn btn-primary">Enviar Reclamo</button>
 			<div id="reclamoMessage" class="message-box"></div>
 		</form>
 	</div>
 </div>
 
 <script>
-	import { $currentUser, createReclamo } from '../../stores/appStore';
+	import { $currentUser, createReclamo, getSolicitudesByUser } from '../../stores/appStore';
 
 	const nuevoReclamoForm = document.getElementById('nuevoReclamoForm') as HTMLFormElement;
 	const reclamoMessage = document.getElementById('reclamoMessage') as HTMLDivElement;
+	const orderSelect = document.getElementById('reclamoOrderId') as HTMLSelectElement;
 
-	nuevoReclamoForm.addEventListener('submit', (e) => {
+	function loadOrders() {
+		const currentUser = $currentUser.get();
+		if (!currentUser) return;
+
+		const orders = getSolicitudesByUser(currentUser.username);
+		
+		if (orders.length === 0) {
+			orderSelect.innerHTML = '<option value="">No tienes pedidos registrados</option>';
+			return;
+		}
+
+		orderSelect.innerHTML = `
+			<option value="">Selecciona un pedido...</option>
+			${orders.map(order => `
+				<option value="${order.id}">
+					Pedido #${order.id} - ${order.fecha} (${order.status})
+				</option>
+			`).join('')}
+		`;
+	}
+
+	// Load orders when view becomes active
+	window.addEventListener('viewChange', (e: any) => {
+		if (e.detail.viewId === 'nuevoReclamo') {
+			loadOrders();
+		}
+	});
+
+	// Also load on initial script run if user is already logged in
+	loadOrders();
+
+	nuevoReclamoForm.addEventListener('submit', async (e) => {
 		e.preventDefault();
 
 		const currentUser = $currentUser.get();
@@ -32,10 +71,37 @@
 		}
 
 		const formData = new FormData(nuevoReclamoForm);
+		const orderId = formData.get('reclamoOrderId') as string;
+		
+		// Process images
+		const fileInput = document.getElementById('reclamoImages') as HTMLInputElement;
+		const files = fileInput.files;
+		const images: string[] = [];
+
+		if (files && files.length > 0) {
+			for (let i = 0; i < files.length; i++) {
+				const file = files[i];
+				const reader = new FileReader();
+				
+				try {
+					const base64 = await new Promise<string>((resolve, reject) => {
+						reader.onload = () => resolve(reader.result as string);
+						reader.onerror = reject;
+						reader.readAsDataURL(file);
+					});
+					images.push(base64);
+				} catch (err) {
+					console.error('Error reading file:', err);
+				}
+			}
+		}
+
 		const reclamoData = {
 			username: currentUser.username,
-			numPedido: formData.get('reclamoNumPedido') as string,
-			descripcion: formData.get('reclamoDescripcion') as string
+			orderId: orderId,
+			numPedido: orderId, // Keep for backward compatibility or display
+			descripcion: formData.get('reclamoDescripcion') as string,
+			images: images
 		};
 
 		createReclamo(reclamoData);
@@ -44,6 +110,8 @@
 		reclamoMessage.className = 'message-box success show';
 
 		nuevoReclamoForm.reset();
+		// Reload orders to reset select
+		loadOrders();
 
 		setTimeout(() => {
 			reclamoMessage.classList.remove('show');

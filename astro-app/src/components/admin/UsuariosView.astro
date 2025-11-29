@@ -39,21 +39,19 @@
 </div>
 
 <script>
-	import { $users, createUser } from '../../stores/appStore';
+	import { $users, createUser, updateUserRole, deleteUser, $currentUser } from '../../stores/appStore';
 
 	function renderUsuarios() {
 		const users = $users.get();
+		const currentUser = $currentUser.get();
 		const container = document.getElementById('usersList');
 		
 		if (!container) return;
 
-		const clientUsers = users.filter(u => u.role === 'client');
-
-		if (clientUsers.length === 0) {
+		if (users.length === 0) {
 			container.innerHTML = `
 				<div class="empty-state">
 					<h3>No hay usuarios registrados</h3>
-					<p>Los usuarios creados aparecerán aquí</p>
 				</div>
 			`;
 			return;
@@ -66,21 +64,54 @@
 						<th>Usuario</th>
 						<th>Nombre</th>
 						<th>Email</th>
-						<th>Teléfono</th>
+						<th>Rol</th>
+						<th>Acciones</th>
 					</tr>
 				</thead>
 				<tbody>
-					${clientUsers.map(user => `
+					${users.map(user => `
 						<tr>
 							<td>${user.username}</td>
 							<td>${user.name || '-'}</td>
 							<td>${user.email || '-'}</td>
-							<td>${user.phone || '-'}</td>
+							<td>
+								<select class="role-select" data-username="${user.username}" ${user.username === currentUser?.username ? 'disabled' : ''}>
+									<option value="client" ${user.role === 'client' ? 'selected' : ''}>Cliente</option>
+									<option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+								</select>
+							</td>
+							<td>
+								<button class="btn btn-sm btn-danger delete-user-btn" data-username="${user.username}" ${user.username === currentUser?.username ? 'disabled' : ''}>
+									Eliminar
+								</button>
+							</td>
 						</tr>
 					`).join('')}
 				</tbody>
 			</table>
 		`;
+
+		// Add listeners
+		container.querySelectorAll('.role-select').forEach(select => {
+			select.addEventListener('change', (e) => {
+				const target = e.target as HTMLSelectElement;
+				const username = target.dataset.username;
+				const role = target.value as 'admin' | 'client';
+				if (username) {
+					updateUserRole(username, role);
+				}
+			});
+		});
+
+		container.querySelectorAll('.delete-user-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				const target = e.target as HTMLButtonElement;
+				const username = target.dataset.username;
+				if (username && confirm(`¿Estás seguro de eliminar al usuario ${username}?`)) {
+					deleteUser(username);
+				}
+			});
+		});
 	}
 
 	// Form submission
@@ -106,7 +137,7 @@
 
 		if (result.success) {
 			createUserForm.reset();
-			renderUsuarios();
+			// renderUsuarios is called by subscription
 		}
 
 		setTimeout(() => {

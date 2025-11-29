@@ -34,10 +34,12 @@ export interface Solicitud {
 export interface Reclamo {
     id: string;
     username: string;
-    numPedido: string;
+    numPedido?: string; // Optional if they don't select one, but user asked to attach it
+    orderId?: string; // Linking to actual ID
     descripcion: string;
     fecha: string;
     status: 'open' | 'closed';
+    images?: string[];
 }
 
 // Persistent stores
@@ -93,6 +95,20 @@ export function createUser(userData: Omit<User, 'role'>): { success: boolean; me
 
     $users.set([...users, newUser]);
     return { success: true, message: 'Usuario creado exitosamente' };
+}
+
+export function updateUserRole(username: string, role: 'admin' | 'client') {
+    const users = $users.get();
+    const updated = users.map(u =>
+        u.username === username ? { ...u, role } : u
+    );
+    $users.set(updated);
+}
+
+export function deleteUser(username: string) {
+    const users = $users.get();
+    const filtered = users.filter(u => u.username !== username);
+    $users.set(filtered);
 }
 
 export function createSolicitud(solicitudData: Omit<Solicitud, 'id' | 'status' | 'fecha'>): string {
