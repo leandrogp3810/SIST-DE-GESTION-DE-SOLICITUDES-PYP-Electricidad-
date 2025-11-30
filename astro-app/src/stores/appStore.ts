@@ -83,7 +83,7 @@ export function logout() {
     $currentUser.set(null);
 }
 
-export function createUser(userData: Omit<User, 'role'>): { success: boolean; message: string } {
+export function createUser(userData: Omit<User, 'role'> & { role?: 'admin' | 'client' }): { success: boolean; message: string } {
     const users = $users.get();
 
     if (users.find(u => u.username === userData.username)) {
@@ -92,7 +92,7 @@ export function createUser(userData: Omit<User, 'role'>): { success: boolean; me
 
     const newUser: User = {
         ...userData,
-        role: 'client'
+        role: userData.role || 'client'
     };
 
     $users.set([...users, newUser]);

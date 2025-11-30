@@ -6,26 +6,35 @@
 			<div class="form-row">
 				<div class="form-group">
 					<label for="newUsername">Usuario</label>
-					<input type="text" id="newUsername" required />
+					<input type="text" id="newUsername" name="newUsername" required />
 				</div>
 				<div class="form-group">
 					<label for="newPassword">Contraseña</label>
-					<input type="password" id="newPassword" required />
+					<input type="password" id="newPassword" name="newPassword" required />
 				</div>
 			</div>
 			<div class="form-row">
 				<div class="form-group">
 					<label for="newUserName">Nombre Completo</label>
-					<input type="text" id="newUserName" required />
+					<input type="text" id="newUserName" name="newUserName" required />
 				</div>
 				<div class="form-group">
 					<label for="newUserEmail">Email</label>
-					<input type="email" id="newUserEmail" required />
+					<input type="email" id="newUserEmail" name="newUserEmail" required />
 				</div>
 			</div>
-			<div class="form-group">
-				<label for="newUserPhone">Teléfono</label>
-				<input type="tel" id="newUserPhone" required />
+			<div class="form-row">
+				<div class="form-group">
+					<label for="newUserPhone">Teléfono</label>
+					<input type="tel" id="newUserPhone" name="newUserPhone" required />
+				</div>
+				<div class="form-group">
+					<label for="newUserRole">Rol</label>
+					<select id="newUserRole" name="newUserRole" class="form-control">
+						<option value="client">Cliente</option>
+						<option value="admin">Administrador</option>
+					</select>
+				</div>
 			</div>
 			<button type="submit" class="btn btn-primary">Crear Usuario</button>
 			<div id="createUserMessage" class="success-message"></div>
@@ -91,27 +100,33 @@
 			</table>
 		`;
 
-		// Add listeners
-		container.querySelectorAll('.role-select').forEach(select => {
-			select.addEventListener('change', (e) => {
-				const target = e.target as HTMLSelectElement;
-				const username = target.dataset.username;
-				const role = target.value as 'admin' | 'client';
-				if (username) {
-					updateUserRole(username, role);
-				}
-			});
-		});
-
-		container.querySelectorAll('.delete-user-btn').forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				const target = e.target as HTMLButtonElement;
-				const username = target.dataset.username;
+		// Add listeners using delegation
+		container.onclick = (e) => {
+			const target = e.target as HTMLElement;
+			
+			// Handle delete
+			if (target.classList.contains('delete-user-btn')) {
+				const btn = target as HTMLButtonElement;
+				const username = btn.dataset.username;
 				if (username && confirm(`¿Estás seguro de eliminar al usuario ${username}?`)) {
 					deleteUser(username);
 				}
-			});
-		});
+			}
+		};
+
+		container.onchange = (e) => {
+			const target = e.target as HTMLElement;
+			
+			// Handle role change
+			if (target.classList.contains('role-select')) {
+				const select = target as HTMLSelectElement;
+				const username = select.dataset.username;
+				const role = select.value as 'admin' | 'client';
+				if (username) {
+					updateUserRole(username, role);
+				}
+			}
+		};
 	}
 
 	// Form submission
@@ -127,7 +142,8 @@
 			password: formData.get('newPassword') as string,
 			name: formData.get('newUserName') as string,
 			email: formData.get('newUserEmail') as string,
-			phone: formData.get('newUserPhone') as string
+			phone: formData.get('newUserPhone') as string,
+			role: formData.get('newUserRole') as 'admin' | 'client'
 		};
 
 		const result = createUser(userData);
