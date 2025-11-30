@@ -5,6 +5,7 @@
 
 <script>
 	import { $currentUser, $solicitudes, getSolicitudesByUser } from '../../stores/appStore';
+	import { $products } from '../../stores/products';
 
 	function renderMisSolicitudes() {
 		const currentUser = $currentUser.get();
@@ -14,6 +15,7 @@
 		}
 
 		const solicitudes = getSolicitudesByUser(currentUser.username);
+		const products = $products.get();
 		const container = document.getElementById('misSolicitudesList');
 		
 		if (!container) return;
@@ -37,6 +39,13 @@
 
 		container.innerHTML = solicitudes.map(solicitud => {
 			const status = statusLabels[solicitud.status] || { label: solicitud.status, class: '' };
+			
+			// Calculate total
+			const total = solicitud.productos.reduce((sum, item) => {
+				const product = products.find(p => p.id === item.productId);
+				return sum + (product ? product.price * item.cantidad : 0);
+			}, 0);
+
 			return `
 				<div class="solicitud-card">
 					<div class="solicitud-header">
@@ -52,6 +61,9 @@
 								<li>${p.productName} - Cantidad: ${p.cantidad}</li>
 							`).join('')}
 						</ul>
+						<p style="margin-top: 1rem; font-size: 1.1em; color: var(--primary-color);">
+							<strong>Total: $${total.toLocaleString('es-AR')}</strong>
+						</p>
 					</div>
 				</div>
 			`;
