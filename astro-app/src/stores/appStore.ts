@@ -109,7 +109,8 @@ export function updateUserRole(username: string, role: 'admin' | 'client') {
 
 export function deleteUser(username: string) {
     const users = $users.get();
-    const filtered = users.filter(u => u.username !== username);
+    // Compare as strings to handle cases where username might be null/undefined in storage
+    const filtered = users.filter(u => String(u.username) !== username);
     $users.set(filtered);
 
     // Delete user's solicitudes
