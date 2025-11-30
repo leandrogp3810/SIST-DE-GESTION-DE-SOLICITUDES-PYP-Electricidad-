@@ -751,3 +751,7 @@ body {
 .empty-state h3 {
     margin-bottom: 0.5rem;
 }
+/* High Contrast Fixes */
+.empty-state { color: white !important; background: rgba(255, 255, 255, 0.1) !important; }
+.success-message { color: #2ed573 !important; background: rgba(46, 213, 115, 0.2) !important; font-weight: bold; }
+.error-message { color: #ff4757 !important; background: rgba(255, 71, 87, 0.2) !important; font-weight: bold; }
